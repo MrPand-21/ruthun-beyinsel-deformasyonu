@@ -2,8 +2,8 @@
 	import Image from "@zerodevx/svelte-img";
 	import LandingImage from "$lib/assets/landing-page.png?as=run";
 	import Seo from "$lib/components/SEO.svelte";
-	import { Button } from "bits-ui";
 	import { Icons } from "$lib/components/icons";
+	import AnimatedButton from "$lib/components/AnimatedButton.svelte";
 </script>
 
 <Seo
@@ -30,10 +30,10 @@
 		<div class="flex-1">
 			<div class="space-y-5 py-10 text-center">
 				<p class="text-lg font-semibold">Try our form submission</p>
-				<Button.Root href="/login">
+				<AnimatedButton href="/login">
 					Go to Login
 					<Icons.arrowRight class="ml-2 h-4 w-4" />
-				</Button.Root>
+				</AnimatedButton>
 			</div>
 
 			<div class="space-y-8 text-center">
