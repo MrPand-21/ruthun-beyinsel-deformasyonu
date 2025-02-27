@@ -28,9 +28,9 @@
         font-weight: 600;
         color: var(--text-primary);
         background: transparent;
-        border: 2px solid currentColor;
-        border-bottom: 6.2px solid currentColor;
-        border-right: 3.5px solid currentColor;
+        border: 2px solid #682121;
+        border-bottom: 6.2px solid #682121;
+        border-right: 3.5px solid #682121;
         border-radius: 0.5rem;
         border-top-right-radius: 1.2rem;
         transform-style: preserve-3d;

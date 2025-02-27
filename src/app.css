@@ -9,6 +9,17 @@
     color: var(--text-primary);
 }
 
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-primary: #fafafa;
+        --text-inverted: #18181b;
+        --bg: #18181b;
+        --bg-inverted: #fafafa;
+        background-color: var(--bg);
+        color: var(--text-primary);
+    }
+}
+
 .feature-card:hover {
     background: linear-gradient(135deg, rgba(140, 48, 48, 0.014), rgba(251, 190, 36, 0.032));
 }
