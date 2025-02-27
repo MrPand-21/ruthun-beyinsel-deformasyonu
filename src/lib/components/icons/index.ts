@@ -23,7 +23,8 @@ import {
 	Loader,
 	Moon,
 	Sun,
-	BookOpen
+	BookOpen,
+	Star
 } from 'lucide-svelte';
 import Google from './google.svelte';
 
@@ -57,6 +58,10 @@ export const Icons = {
 	moon: Moon,
 	sun: Sun,
 	book: BookOpen,
+	advice: TriangleAlert,
+	activity: Loader2,
+	chat: Send,
+	star: Star,
 
 };
 

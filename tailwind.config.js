@@ -11,4 +11,5 @@ export default {
             },
         },
     },
+    darkMode: 'class',
 }

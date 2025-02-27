@@ -1,23 +1,12 @@
 @import 'tailwindcss';
 
-.hero-content {
-    position: relative;
-    padding: 2rem;
-    margin-top: 2rem;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 1rem;
-    box-shadow:
-        0 8px 32px rgba(140, 48, 48, 0.1),
-        0 2px 8px rgba(140, 48, 48, 0.1);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-}
-
-
-
-.feature-card {
-    @apply relative p-6 rounded-xl backdrop-blur-sm border border-gray-200/20 dark:border-gray-700/20 bg-white/50 dark:bg-gray-800/50 transition-all duration-300 hover:-translate-y-1;
+:root {
+    --text-primary: #18181b;
+    --text-inverted: #fafafa;
+    --bg: #f9f9f9;
+    --bg-inverted: #18181b;
+    background-color: var(--bg);
+    color: var(--text-primary);
 }
 
 .feature-card:hover {
@@ -34,9 +23,7 @@
     text-shadow: 0 2px 4px rgba(140, 48, 48, 0.1);
 }
 
-:global(.dark) .hero-content {
-    background: rgba(0, 0, 0, 0.2);
-    box-shadow:
-        0 8px 32px rgba(251, 191, 36, 0.1),
-        0 2px 8px rgba(251, 191, 36, 0.1);
+:global(.dark) .animated-button {
+    --text-primary: #fafafa;
+    --text-inverted: #18181b;
 }

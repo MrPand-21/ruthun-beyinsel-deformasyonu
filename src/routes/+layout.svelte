@@ -6,7 +6,7 @@
 	import "../app.css";
 	import Analytics from "$lib/components/Analytics.svelte";
 	import AppBackground from "$lib/components/AppBackground.svelte";
-	import Navbar from "./Navbar.svelte";
+	import Navbar from "$lib/components/Navbar.svelte";
 </script>
 
 <ModeWatcher />
@@ -20,3 +20,6 @@
 
 	<slot />
 </div>
+
+<style>
+</style>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import lottie, { type AnimationItem } from 'lottie-web';
+	import { onDestroy, onMount } from "svelte";
+	import lottie, { type AnimationItem } from "lottie-web";
 
 	export let id: string;
 	export let loop = true;
@@ -10,7 +10,6 @@
 	let animation: AnimationItem | null = null;
 
 	onMount(() => {
-		
 		const container = document.querySelector(`#${id}`);
 		if (!container) return;
 
@@ -18,7 +17,7 @@
 			container,
 			animationData: asset,
 			loop,
-			autoplay
+			autoplay,
 		});
 	});
 
@@ -28,4 +27,4 @@
 	});
 </script>
 
-<div {id} class={$$restProps.class} role="presentation" />
+<div {id} class={$$restProps.class} role="presentation"></div>

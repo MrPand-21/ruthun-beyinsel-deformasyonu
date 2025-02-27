@@ -9,7 +9,9 @@
         class="animated-button px-6 py-3 group-hover:pb-2.5 group-hover:transition-all group-hover:duration-500
          group-hover:pt-3.5 overflow-visible {className}"
     >
-        <span class="flex relative items-center justify-center gap-2 z-[1]">
+        <span
+            class="flex relative group-hover:text-[var(--text-inverted)] items-center justify-center gap-2 z-[1]"
+        >
             <slot />
         </span>
         <span
@@ -68,8 +70,8 @@
     }
 
     .animated-button:hover {
-        color: var(--text-inverted);
         transform: translateY(4px);
+        border-color: transparent;
     }
 
     .animated-button:hover::before,
@@ -79,15 +81,5 @@
 
     .animated-button:active {
         transform: translateY(12px);
-    }
-
-    :global(.dark) .animated-button {
-        --text-primary: #fafafa;
-        --text-inverted: #18181b;
-    }
-
-    :global(:root) {
-        --text-primary: #18181b;
-        --text-inverted: #fafafa;
     }
 </style>
