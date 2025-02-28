@@ -1,11 +1,11 @@
 <script lang="ts">
-    export let href: string;
+    export let href: string = "";
     export let className = "";
+    export let type = "button";
 </script>
 
-<span class="relative h-auto group">
-    <a
-        {href}
+{#if type === "submit"}
+    <button
         class="animated-button px-6 py-3 group-hover:pb-2.5 group-hover:transition-all group-hover:duration-500
          group-hover:pt-3.5 overflow-visible {className}"
     >
@@ -18,8 +18,26 @@
             class="absolute w-full bottom-0 left-0 h-full z-[-1]
           bg-amber-400 group-hover:w-0 transition-all duration-500"
         ></span>
-    </a>
-</span>
+    </button>
+{:else}
+    <span class="relative h-auto group">
+        <a
+            {href}
+            class="animated-button px-6 py-3 group-hover:pb-2.5 group-hover:transition-all group-hover:duration-500
+         group-hover:pt-3.5 overflow-visible {className}"
+        >
+            <span
+                class="flex relative group-hover:text-[var(--text-inverted)] items-center justify-center gap-2 z-[1]"
+            >
+                <slot />
+            </span>
+            <span
+                class="absolute w-full bottom-0 left-0 h-full z-[-1]
+          bg-amber-400 group-hover:w-0 transition-all duration-500"
+            ></span>
+        </a>
+    </span>
+{/if}
 
 <style>
     .animated-button {

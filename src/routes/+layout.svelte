@@ -4,6 +4,7 @@
 	import Analytics from "$lib/components/Analytics.svelte";
 	import AppBackground from "$lib/components/AppBackground.svelte";
 	import Navbar from "$lib/components/Navbar.svelte";
+	import Footer from "$lib/components/Footer.svelte";
 </script>
 
 <Analytics />
@@ -17,6 +18,8 @@
 
 	<slot />
 </div>
+
+<Footer />
 
 <style>
 </style>

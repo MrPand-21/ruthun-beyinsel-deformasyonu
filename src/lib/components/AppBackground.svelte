@@ -34,6 +34,7 @@
 		margin: 0;
 		padding: 0;
 		overflow: hidden;
+		z-index: -90;
 	}
 	ul li {
 		@apply bg-[#eef9eb] dark:bg-[#0f1219];

@@ -24,7 +24,9 @@ import {
 	Moon,
 	Sun,
 	BookOpen,
-	Star
+	Star,
+	Search,
+	Clock
 } from 'lucide-svelte';
 import Google from './google.svelte';
 
@@ -62,6 +64,8 @@ export const Icons = {
 	activity: Loader2,
 	chat: Send,
 	star: Star,
+	search: Search,
+	clock: Clock
 
 };
 

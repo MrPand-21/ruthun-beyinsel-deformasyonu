@@ -11,7 +11,7 @@
 	keywords="robert college, rc community, summer activities, courses, clubs, student experiences"
 />
 
-<main class="relative mx-auto max-w-7xl px-5 pb-40 sm:px-8">
+<main class="relative mx-auto max-w-7xl px-5 pb-8 sm:px-8">
 	<Hero />
 
 	<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
@@ -67,7 +67,7 @@
 			insights, and activities with fellow students!
 		</p>
 		<AnimatedButton href="/login">
-			Start Sharing
+			Start Browing
 			<Icons.arrowRight class="ml-2 h-4 w-4" />
 		</AnimatedButton>
 	</div>

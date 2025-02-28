@@ -4,7 +4,11 @@
     --text-primary: #18181b;
     --text-inverted: #fafafa;
     --bg: #f9f9f9;
-    --bg-inverted: #18181b;
+    --secondary: #682121;
+    --secondary-light: #8c3030;
+    --primary: oklch(0.828 0.189 84.429)
+        /* #fbbf24 , amber-400 */
+    ;
     background-color: var(--bg);
     color: var(--text-primary);
 }
