@@ -1,6 +1,5 @@
 <script lang="ts">
     import { superForm } from "sveltekit-superforms/client";
-    import toast, { Toaster } from "svelte-french-toast";
     import { zodClient } from "sveltekit-superforms/adapters";
     import Input from "$lib/components/Input.svelte";
     import AnimatedButton from "$lib/components/AnimatedButton.svelte";
@@ -15,17 +14,17 @@
         onResult: (result) => {
             switch (result.result.type) {
                 case "success":
-                    toast.success("Your submission has been received!");
+                    // toast.success("Your submission has been received!");
                     break;
                 case "failure":
-                    toast.error(
-                        "There was an issue with your submission. Please try again.",
-                    );
+                    // toast.error(
+                    //     "There was an issue with your submission. Please try again.",
+                    // );
                     break;
             }
         },
         onError: (errors) => {
-            toast.error("An unexpected error occurred. Please contact us.");
+            // toast.error("An unexpected error occurred. Please contact us.");
         },
     });
 </script>
@@ -36,7 +35,7 @@
     keywords="share experience, community contribution, RC community hub, student insights"
 />
 
-<Toaster />
+<!-- <Toaster /> -->
 
 <div class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
     <form method="POST" use:enhance class="flex flex-col lg:flex-row gap-8">
