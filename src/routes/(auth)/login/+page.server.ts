@@ -11,7 +11,7 @@ export const load: PageServerLoad = async (event) => {
 
 	// If the user is already logged in, redirect to the homepage
 	if (session) {
-		throw redirect(303, '/');
+		redirect(303, '/');
 	}
 
 	// Get the callback URL from the query string

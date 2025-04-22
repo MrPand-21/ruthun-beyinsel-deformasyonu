@@ -8,7 +8,15 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { MongooseAdapter } from "@brendon1555/authjs-mongoose-adapter"
 import { MONGODB_URI } from '$env/static/private';
 
-import { User } from '$lib/server/models/user.model';
+import { User, type UserDocument } from '$lib/server/models/user.model';
+import { connectToDatabase } from '$lib/server/db/mongodb';
+import { comparePassword } from '$lib/server/utils';
+
+await connectToDatabase().catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
+});
+
 
 const authorization: Handle = async ({ event, resolve }) => {
     const protectedRoutes = ['/activities', '/send'];
@@ -19,7 +27,7 @@ const authorization: Handle = async ({ event, resolve }) => {
     if (isProtectedRoute) {
         const session = await event.locals.auth();
         if (!session) {
-            throw redirect(303, `/login?callbackUrl=${event.url.pathname}`);
+            redirect(303, `/login?callbackUrl=${event.url.pathname}`);
         }
     }
 
@@ -53,13 +61,13 @@ export const handle = sequence(
                 async authorize(credentials) {
                     try {
 
-                        const user = await User.findOne({ email: credentials?.email });
+                        const user: UserDocument | null = await User.findOne({ email: credentials?.email });
 
                         if (!user || !credentials?.password) {
                             return null;
                         }
 
-                        const isValid = await user.comparePassword(credentials.password);
+                        const isValid = await comparePassword(user, credentials.password as any);
 
                         if (!isValid) {
                             return null;

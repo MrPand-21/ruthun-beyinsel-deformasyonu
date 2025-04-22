@@ -14,7 +14,7 @@ export const load: PageServerLoad = async (event) => {
 
     // If the user is already logged in, redirect to the homepage
     if (session) {
-        throw redirect(303, '/');
+        redirect(303, '/');
     }
 
     return {
@@ -35,9 +35,6 @@ export const actions: Actions = {
         const { name, email, password } = form.data;
 
         try {
-            if (mongoose.connection.readyState !== 1) {
-                await mongoose.connect(MONGODB_URI);
-            }
             const existingUser = await User.findOne({ email: email.toLowerCase() });
 
             if (existingUser) {
@@ -59,7 +56,7 @@ export const actions: Actions = {
 
             console.log(savedUser);
 
-            throw redirect(303, '/login?registered=true');
+            redirect(303, '/login?registered=true');
 
         } catch (error) {
             console.error('Registration error:', error);

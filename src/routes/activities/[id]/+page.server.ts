@@ -8,7 +8,7 @@ export const load: PageServerLoad = async (event) => {
     const session = await event.locals.auth();
 
     if (!session || !session.user) {
-        throw redirect(303, '/login?callbackUrl=' + event.url.pathname);
+        redirect(303, '/login?callbackUrl=' + event.url.pathname);
     }
 
     const activityId = event.params.id;

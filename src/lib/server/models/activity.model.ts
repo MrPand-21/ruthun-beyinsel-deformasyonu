@@ -56,5 +56,4 @@ const activitySchema = new mongoose.Schema(
     }
 );
 
-// Create and export the model
 export const Activity = mongoose.models.Activity || mongoose.model<ActivityDocument>('Activity', activitySchema);

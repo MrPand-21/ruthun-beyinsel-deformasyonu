@@ -7,7 +7,7 @@ export const load: PageServerLoad = async (event) => {
     const session = await event.locals.getSession();
 
     if (!session || !session.user) {
-        throw redirect(303, '/login?callbackUrl=/activities');
+        redirect(303, '/login?callbackUrl=/activities');
     }
 
     try {
