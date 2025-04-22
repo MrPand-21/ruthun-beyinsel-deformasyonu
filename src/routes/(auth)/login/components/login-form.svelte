@@ -18,6 +18,8 @@
 	import { type FormSchema, formSchema } from "../schema";
 	import type { AnalyticsDto, ErrorResponseType } from "$lib/types";
 	import { Icons } from "$lib/components/icons";
+	import { signIn } from "@auth/sveltekit/client";
+	import { page } from "$app/stores";
 
 	export let data: SuperValidated<Infer<FormSchema>>;
 
@@ -49,6 +51,9 @@
 		onResult: async ({ result }) => {
 			if (result.type !== "success" || !result.data) {
 				isLoadingFormSubmit = false;
+				if (result.data?.error) {
+					errorResponse = getEmptyErrorResponse(result.data.error);
+				}
 				return;
 			}
 
@@ -59,11 +64,6 @@
 			}
 
 			performRememberMe();
-
-			console.log("Form data:", formData);
-
-			// TODO: do something after the form submission
-
 			isLoadingFormSubmit = false;
 		},
 	});
@@ -94,6 +94,21 @@
 			return;
 		}
 		deleteLastLoginEmail();
+	}
+
+	async function handleGoogleSignIn() {
+		isLoadingGoogleAuth = true;
+		try {
+			await signIn("google", {
+				callbackUrl: $page.url.searchParams.get("callbackUrl") || "/",
+			});
+		} catch (error) {
+			console.error("Google sign in error:", error);
+			errorResponse = getEmptyErrorResponse(
+				"Google sign in failed. Please try again.",
+			);
+			isLoadingGoogleAuth = false;
+		}
 	}
 </script>
 
@@ -126,8 +141,8 @@
 					bind:value={$formData.email}
 					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 				/>
-				{#if form.errors}
-					<p class="text-sm text-destructive">{form.errors}</p>
+				{#if form.errors?.email}
+					<p class="text-sm text-destructive">{form.errors.email}</p>
 				{/if}
 			</div>
 
@@ -146,9 +161,9 @@
 					placeholder="********"
 					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 				/>
-				{#if form.errors}
+				{#if form.errors?.password}
 					<p class="text-sm text-destructive">
-						{form}
+						{form.errors.password}
 					</p>
 				{/if}
 			</div>
@@ -185,6 +200,7 @@
 			type="button"
 			disabled={isLoadingGoogleAuth || isLoadingFormSubmit}
 			class="hover:bg-gray-50 hover:text-black"
+			on:click={handleGoogleSignIn}
 		>
 			{#if isLoadingGoogleAuth}
 				<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />

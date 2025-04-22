@@ -1,0 +1,36 @@
+// src/routes/activities/+page.server.ts
+import type { PageServerLoad } from './$types';
+import { Activity } from '$lib/server/models/activity.model';
+import { error, redirect } from '@sveltejs/kit';
+
+export const load: PageServerLoad = async (event) => {
+    const session = await event.locals.getSession();
+
+    if (!session || !session.user) {
+        throw redirect(303, '/login?callbackUrl=/activities');
+    }
+
+    try {
+
+        const activities = await Activity.find({ userId: session.user.id })
+            .sort({ startDate: -1 })
+            .lean();
+
+        // Convert MongoDB documents to plain objects and format dates
+        const formattedActivities = activities.map(activity => ({
+            ...activity,
+            id: activity._id!.toString(),
+            startDate: activity.startDate.toISOString().split('T')[0],
+            endDate: activity.endDate.toISOString().split('T')[0],
+            createdAt: activity.createdAt.toISOString(),
+            updatedAt: activity.updatedAt.toISOString()
+        }));
+
+        return {
+            activities: formattedActivities
+        };
+    } catch (err) {
+        console.error('Error fetching activities:', err);
+        throw error(500, 'Failed to load activities');
+    }
+};

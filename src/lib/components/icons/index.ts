@@ -23,50 +23,87 @@ import {
 	Loader,
 	Moon,
 	Sun,
-	BookOpen,
 	Star,
 	Search,
-	Clock
+	Clock,
+	Calendar,
+	Book,
+	Briefcase,
+	Camera,
+	Edit,
+	Heart,
+	LogIn,
+	LogOut,
+	MapPin,
+	MessageSquare,
+	Plane,
+	Plus,
+	Trash,
+	User,
+	Users,
+	ArrowLeft
 } from 'lucide-svelte';
 import Google from './google.svelte';
+
 
 
 export type Icon = LucideIcon;
 
 export const Icons = {
+	// Navigation & UI
+	home: Home,
+	menu: Menu,
+	x: X,
+	arrowLeft: ArrowLeft,
+	arrowRight: ArrowRight,
+	plus: Plus,
+	edit: Edit,
+	trash: Trash,
+	star: Star,
+	calendar: Calendar,
+
+	// Authentication
+	logIn: LogIn,
+	logOut: LogOut,
+	user: User,
+	userPlus: UserPlus,
 	spinner: Loader2,
-	camera: Instagram,
+	google: Google,
+
+	// Activity Categories
+	briefcase: Briefcase,
+	book: Book,
+	plane: Plane,
+	heart: Heart,
+	mapPin: MapPin,
+
+	// Social
+	twitter: Twitter,
+	camera: Camera,
+	linkedin: Linkedin,
+	chat: MessageSquare,
+
+	// Misc
+	sun: Sun,
+	moon: Moon,
+	loader: Loader,
+	users: Users2,
+
 	link: Link,
 	close: X,
-	google: Google,
 	select: ChevronsUpDown,
 	dashboard: LayoutDashboard,
 	documents: ScrollText,
-	userPlus: UserPlus,
-	users: Users2,
 	dollarCircle: CircleDollarSign,
 	settings: Settings,
-	menu: Menu,
-	arrowRight: ArrowRight,
-	twitter: Twitter,
 	github: Github,
-	linkedin: Linkedin,
-	home: Home,
 	triangleAlert: TriangleAlert,
 	share: Share,
 	send: Send,
-	x: X,
-	loader: Loader,
-	moon: Moon,
-	sun: Sun,
-	book: BookOpen,
 	advice: TriangleAlert,
 	activity: Loader2,
-	chat: Send,
-	star: Star,
 	search: Search,
 	clock: Clock
-
 };
 
 export type IconType = any;

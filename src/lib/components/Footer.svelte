@@ -29,21 +29,21 @@
                 </p>
                 <div class="flex space-x-4 mt-6">
                     <a
-                        href="#"
+                        href="#a"
                         aria-label="Twitter"
                         class="text-gray-500 hover:text-secondary transition-colors"
                     >
                         <Icons.twitter class="h-5 w-5" />
                     </a>
                     <a
-                        href="#"
+                        href="#a"
                         aria-label="Instagram"
                         class="text-gray-500 hover:text-secondary transition-colors"
                     >
                         <Icons.camera class="h-5 w-5" />
                     </a>
                     <a
-                        href="#"
+                        href="#a"
                         aria-label="LinkedIn"
                         class="text-gray-500 hover:text-secondary transition-colors"
                     >
@@ -99,28 +99,28 @@
                 <ul class="space-y-3">
                     <li>
                         <a
-                            href="#"
+                            href="#a"
                             class="text-fr/80 hover:text-secondary transition-colors"
                             >FAQ</a
                         >
                     </li>
                     <li>
                         <a
-                            href="#"
+                            href="#a"
                             class="text-fr/80 hover:text-secondary transition-colors"
                             >Privacy Policy</a
                         >
                     </li>
                     <li>
                         <a
-                            href="#"
+                            href="#aa"
                             class="text-fr/80 hover:text-secondary transition-colors"
                             >Terms of Service</a
                         >
                     </li>
                     <li>
                         <a
-                            href="#"
+                            href="#a"
                             class="text-fr/80 hover:text-secondary transition-colors"
                             >Contact</a
                         >

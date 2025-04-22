@@ -3,11 +3,22 @@
     import { fly, scale } from "svelte/transition";
     import { quintOut } from "svelte/easing";
     import { Icons } from "./icons";
+    import { page } from "$app/stores";
+    import { signOut } from "@auth/sveltekit/client";
+    import { goto } from "$app/navigation";
 
     let mobileMenuOpen = $state(false);
 
+    let session = $state($page.data.session);
+    let user = $state(session?.user);
+
     function toggleMobileMenu() {
         mobileMenuOpen = !mobileMenuOpen;
+    }
+
+    async function handleSignOut() {
+        mobileMenuOpen = false;
+        await signOut({ callbackUrl: "/" });
     }
 </script>
 
@@ -40,6 +51,55 @@
                 <Icons.chat class="h-5 w-5" />
                 <span>Advises</span>
             </a>
+
+            {#if user}
+                <div class="flex items-center space-x-4">
+                    {#if user.image}
+                        <img
+                            src={user.image}
+                            alt={user.name || "User"}
+                            class="h-8 w-8 rounded-full border-2 border-gray-200"
+                        />
+                    {:else}
+                        <div
+                            class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
+                        >
+                            {(user.name || "U").charAt(0).toUpperCase()}
+                        </div>
+                    {/if}
+                    <button
+                        onclick={handleSignOut}
+                        class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-red-500/30
+                        hover:border-red-500
+                        transition-all duration-300 transform"
+                    >
+                        <Icons.logOut class="h-5 w-5" />
+                        <span>Sign Out</span>
+                    </button>
+                </div>
+            {:else}
+                <div class="flex items-center space-x-3">
+                    <a
+                        href="/login"
+                        class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-blue-500/30
+                        hover:border-blue-500
+                        transition-all duration-300 transform"
+                    >
+                        <Icons.logIn class="h-5 w-5" />
+                        <span>Sign In</span>
+                    </a>
+                    <a
+                        href="/register"
+                        class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-blue-600 text-white
+                        hover:bg-blue-700
+                        transition-all duration-300 transform"
+                    >
+                        <Icons.userPlus class="h-5 w-5" />
+                        <span>Register</span>
+                    </a>
+                </div>
+            {/if}
+
             <ThemeToggle />
         </div>
 
@@ -60,6 +120,25 @@
             >
                 <Icons.chat class="h-5 w-5" />
             </a>
+
+            {#if user}
+                <div class="flex items-center">
+                    {#if user.image}
+                        <img
+                            src={user.image}
+                            alt={user.name || "User"}
+                            class="h-8 w-8 rounded-full border-2 border-gray-200"
+                        />
+                    {:else}
+                        <div
+                            class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
+                        >
+                            {(user.name || "U").charAt(0).toUpperCase()}
+                        </div>
+                    {/if}
+                </div>
+            {/if}
+
             <ThemeToggle />
             <button
                 class="p-3 rounded-xl border-2 border-gray-500/30 hover:border-gray-500
@@ -105,6 +184,66 @@
                     <Icons.chat class="h-6 w-6" />
                     <span class="font-medium">Advises</span>
                 </a>
+
+                {#if user}
+                    <div
+                        class="pt-2 border-t border-gray-200 dark:border-gray-700"
+                    >
+                        <div class="flex items-center space-x-3 p-3">
+                            {#if user.image}
+                                <img
+                                    src={user.image}
+                                    alt={user.name || "User"}
+                                    class="h-8 w-8 rounded-full border-2 border-gray-200"
+                                />
+                            {:else}
+                                <div
+                                    class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
+                                >
+                                    {(user.name || "U").charAt(0).toUpperCase()}
+                                </div>
+                            {/if}
+                            <span class="font-medium"
+                                >{user.name || user.email}</span
+                            >
+                        </div>
+
+                        <button
+                            class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/20
+                            text-red-600 dark:text-red-400 transition-colors"
+                            onclick={() => handleSignOut()}
+                            transition:scale={{ duration: 200, delay: 200 }}
+                        >
+                            <Icons.logOut class="h-6 w-6" />
+                            <span class="font-medium">Sign Out</span>
+                        </button>
+                    </div>
+                {:else}
+                    <div
+                        class="pt-2 border-t border-gray-200 dark:border-gray-700"
+                    >
+                        <a
+                            href="/login"
+                            class="flex items-center space-x-3 p-3 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/20
+                            text-blue-600 dark:text-blue-400 transition-colors"
+                            onclick={() => (mobileMenuOpen = false)}
+                            transition:scale={{ duration: 200, delay: 200 }}
+                        >
+                            <Icons.logIn class="h-6 w-6" />
+                            <span class="font-medium">Sign In</span>
+                        </a>
+                        <a
+                            href="/register"
+                            class="flex items-center space-x-3 p-3 rounded-xl hover:bg-green-100 dark:hover:bg-green-900/20
+                            text-green-600 dark:text-green-400 transition-colors"
+                            onclick={() => (mobileMenuOpen = false)}
+                            transition:scale={{ duration: 200, delay: 250 }}
+                        >
+                            <Icons.userPlus class="h-6 w-6" />
+                            <span class="font-medium">Register</span>
+                        </a>
+                    </div>
+                {/if}
             </div>
         </div>
     {/if}
