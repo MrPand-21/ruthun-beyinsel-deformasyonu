@@ -2,12 +2,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { zod } from 'sveltekit-superforms/adapters';
 import { superValidate } from 'sveltekit-superforms/server';
-import mongoose from 'mongoose';
 
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
-import { User } from '$lib/server/models/user.model';
-import { MONGODB_URI } from '$env/static/private';
+import { UserService } from '$lib/server/models/user.model';
 
 export const load: PageServerLoad = async (event) => {
     const session = await event.locals.auth();
@@ -35,7 +33,7 @@ export const actions: Actions = {
         const { name, email, password } = form.data;
 
         try {
-            const existingUser = await User.findOne({ email: email.toLowerCase() });
+            const existingUser = await UserService.findByEmail(email);
 
             if (existingUser) {
                 return fail(400, {
@@ -45,16 +43,14 @@ export const actions: Actions = {
             }
 
             // Create new user
-            const user = new User({
+            const user = await UserService.create({
                 name,
-                email: email.toLowerCase(),
+                email,
                 password,
                 provider: 'credentials'
             });
 
-            let savedUser = await user.save();
-
-            console.log(savedUser);
+            console.log('User registered successfully:', user._id);
 
             redirect(303, '/login?registered=true');
 

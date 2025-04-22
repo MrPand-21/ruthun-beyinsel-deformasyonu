@@ -7,7 +7,7 @@ import { formSchema } from './schema';
 import { AuthError } from '@auth/core/errors';
 
 export const load: PageServerLoad = async (event) => {
-	const session = await event.locals.getSession();
+	const session = await event.locals.auth();
 
 	// If the user is already logged in, redirect to the homepage
 	if (session) {
@@ -38,13 +38,28 @@ export const actions: Actions = {
 		try {
 			const url = event.url.searchParams.get('callbackUrl') || '/';
 
-			// Sign in with credentials
-			await event.locals.signIn('credentials', {
+			// This is the correct way to sign in with Auth.js in SvelteKit
+			const result = await event.locals.signIn('credentials', {
 				email,
 				password,
-				redirectTo: url
+				redirect: false, // Don't auto-redirect to allow proper error handling
+				callbackUrl: url
 			});
+
+			// If sign-in successful, redirect manually
+			if (result?.url) {
+				redirect(303, result.url);
+			} else if (result?.error) {
+				return fail(400, {
+					form,
+					error: 'Invalid email or password'
+				});
+			} else {
+				// If no error but no redirect URL, redirect to homepage or callback
+				redirect(303, url);
+			}
 		} catch (error) {
+			console.error('Login error:', error);
 			// If login fails, return the form with an error message
 			if (error instanceof AuthError) {
 				return fail(400, {
@@ -58,7 +73,7 @@ export const actions: Actions = {
 			});
 		}
 
-		// The Auth.js callback should handle the redirect
+		// This should only be reached if none of the above redirects or returns happen
 		return { form };
 	}
 };

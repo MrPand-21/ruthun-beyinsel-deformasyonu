@@ -1,8 +1,8 @@
 // src/routes/api/activities/[id]/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { Activity } from '$lib/server/models/activity.model';
-import mongoose from 'mongoose';
+import { ActivityService } from '$lib/server/models/activity.model';
+import { ObjectId } from 'mongodb';
 
 export const PUT: RequestHandler = async (event) => {
     const session = await event.locals.auth();
@@ -14,7 +14,7 @@ export const PUT: RequestHandler = async (event) => {
     const activityId = event.params.id;
 
     // Validate MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(activityId)) {
+    if (!ObjectId.isValid(activityId)) {
         return json({ error: 'Invalid activity ID' }, { status: 400 });
     }
 
@@ -39,44 +39,54 @@ export const PUT: RequestHandler = async (event) => {
             );
         }
 
+        // Find the activity first to check if it exists
+        const existingActivity = await ActivityService.findById(activityId, session.user.id);
 
-        // Find the activity and check ownership
-        const activity = await Activity.findOne({
-            _id: activityId,
-            userId: session.user.id
-        });
-
-        if (!activity) {
+        if (!existingActivity) {
             return json(
                 { error: 'Activity not found or access denied' },
                 { status: 404 }
             );
         }
 
-        // Update activity fields
-        activity.title = title;
-        activity.description = description;
-        activity.location = location;
-        activity.startDate = new Date(startDate);
-        activity.endDate = new Date(endDate);
-        activity.category = category;
-        activity.tags = Array.isArray(tags) ? tags : [];
+        // Update activity using ActivityService
+        const updateResult = await ActivityService.update(
+            activityId,
+            session.user.id!,
+            {
+                title,
+                description,
+                location,
+                startDate: new Date(startDate),
+                endDate: new Date(endDate),
+                category,
+                tags: Array.isArray(tags) ? tags : []
+            }
+        );
 
-        await activity.save();
+        if (!updateResult) {
+            return json(
+                { error: 'Failed to update activity' },
+                { status: 500 }
+            );
+        }
 
-        // Convert the MongoDB document to a plain object
-        const activityObject = activity.toObject();
+        // Get the updated activity
+        const updatedActivity = await ActivityService.findById(activityId, session.user.id);
 
         return json({
             message: 'Activity updated successfully',
             activity: {
-                ...activityObject,
-                _id: activityObject._id.toString(),
-                userId: activityObject.userId.toString(),
-                startDate: activityObject.startDate.toISOString().split('T')[0],
-                endDate: activityObject.endDate.toISOString().split('T')[0],
-                createdAt: activityObject.createdAt.toISOString(),
-                updatedAt: activityObject.updatedAt.toISOString()
+                ...updatedActivity,
+                _id: updatedActivity!._id!.toString(),
+                id: updatedActivity!._id!.toString(),
+                userId: typeof updatedActivity!.userId === 'object'
+                    ? updatedActivity!.userId.toString()
+                    : updatedActivity!.userId,
+                startDate: updatedActivity!.startDate.toISOString().split('T')[0],
+                endDate: updatedActivity!.endDate.toISOString().split('T')[0],
+                createdAt: updatedActivity!.createdAt.toISOString(),
+                updatedAt: updatedActivity!.updatedAt.toISOString()
             }
         });
 
@@ -91,7 +101,7 @@ export const PUT: RequestHandler = async (event) => {
 
 // Delete an activity
 export const DELETE: RequestHandler = async (event) => {
-    const session = await event.locals.getSession();
+    const session = await event.locals.auth();
 
     if (!session || !session.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
@@ -100,27 +110,20 @@ export const DELETE: RequestHandler = async (event) => {
     const activityId = event.params.id;
 
     // Validate MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(activityId)) {
+    if (!ObjectId.isValid(activityId)) {
         return json({ error: 'Invalid activity ID' }, { status: 400 });
     }
 
     try {
+        // Delete the activity using ActivityService
+        const deleteResult = await ActivityService.delete(activityId, session.user.id!);
 
-        // Find the activity and check ownership
-        const activity = await Activity.findOne({
-            _id: activityId,
-            userId: session.user.id
-        });
-
-        if (!activity) {
+        if (!deleteResult) {
             return json(
                 { error: 'Activity not found or access denied' },
                 { status: 404 }
             );
         }
-
-        // Delete the activity
-        await Activity.deleteOne({ _id: activityId });
 
         return json({
             message: 'Activity deleted successfully'

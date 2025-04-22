@@ -11,7 +11,9 @@ export const formSchema = z.object({
     confirmPassword: z.string(),
     userAgent: z.string().optional(),
     browserHash: z.string().optional(),
-    isIncognitoMode: z.boolean().optional().default(false)
+    isIncognitoMode: z.boolean().optional().default(false),
+    provider: z.string().optional().default('credentials'),
+    providerId: z.string().optional()
 }).refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],

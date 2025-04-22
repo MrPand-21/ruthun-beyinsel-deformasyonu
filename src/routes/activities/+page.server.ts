@@ -1,22 +1,19 @@
 // src/routes/activities/+page.server.ts
 import type { PageServerLoad } from './$types';
-import { Activity } from '$lib/server/models/activity.model';
+import { ActivityService } from '$lib/server/models/activity.model';
 import { error, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async (event) => {
-    const session = await event.locals.getSession();
+    const session = await event.locals.auth();
 
     if (!session || !session.user) {
         redirect(303, '/login?callbackUrl=/activities');
     }
 
     try {
+        const activities = await ActivityService.findByUserId(session.user.id!);
 
-        const activities = await Activity.find({ userId: session.user.id })
-            .sort({ startDate: -1 })
-            .lean();
-
-        // Convert MongoDB documents to plain objects and format dates
+        // Format activities for the frontend
         const formattedActivities = activities.map(activity => ({
             ...activity,
             id: activity._id!.toString(),

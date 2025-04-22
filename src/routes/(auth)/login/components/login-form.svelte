@@ -51,9 +51,6 @@
 		onResult: async ({ result }) => {
 			if (result.type !== "success" || !result.data) {
 				isLoadingFormSubmit = false;
-				if (result.data?.error) {
-					errorResponse = getEmptyErrorResponse(result.data.error);
-				}
 				return;
 			}
 
@@ -200,7 +197,7 @@
 			type="button"
 			disabled={isLoadingGoogleAuth || isLoadingFormSubmit}
 			class="hover:bg-gray-50 hover:text-black"
-			on:click={handleGoogleSignIn}
+			onclick={handleGoogleSignIn}
 		>
 			{#if isLoadingGoogleAuth}
 				<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />

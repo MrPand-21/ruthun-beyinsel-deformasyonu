@@ -1,11 +1,11 @@
 // src/routes/api/activities/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { Activity } from '$lib/server/models/activity.model';
-import mongoose from 'mongoose';
+import { ActivityService } from '$lib/server/models/activity.model';
+import { ObjectId } from 'mongodb';
 
 export const POST: RequestHandler = async (event) => {
-    const session = await event.locals.getSession();
+    const session = await event.locals.auth();
 
     if (!session || !session.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
@@ -32,9 +32,8 @@ export const POST: RequestHandler = async (event) => {
             );
         }
 
-
-        // Create new activity
-        const activity = new Activity({
+        // Create new activity using ActivityService
+        const activity = await ActivityService.create({
             title,
             description,
             location,
@@ -42,24 +41,19 @@ export const POST: RequestHandler = async (event) => {
             endDate: new Date(endDate),
             category,
             tags: Array.isArray(tags) ? tags : [],
-            userId: new mongoose.Types.ObjectId(session.user.id)
+            userId: new ObjectId(session.user.id)
         });
-
-        await activity.save();
-
-        // Convert the MongoDB document to a plain object
-        const activityObject = activity.toObject();
 
         return json({
             message: 'Activity created successfully',
             activity: {
-                ...activityObject,
-                _id: activityObject._id.toString(),
-                userId: activityObject.userId.toString(),
-                startDate: activityObject.startDate.toISOString().split('T')[0],
-                endDate: activityObject.endDate.toISOString().split('T')[0],
-                createdAt: activityObject.createdAt.toISOString(),
-                updatedAt: activityObject.updatedAt.toISOString()
+                ...activity,
+                _id: activity._id.toString(),
+                userId: typeof activity.userId === 'object' ? activity.userId.toString() : activity.userId,
+                startDate: activity.startDate.toISOString().split('T')[0],
+                endDate: activity.endDate.toISOString().split('T')[0],
+                createdAt: activity.createdAt.toISOString(),
+                updatedAt: activity.updatedAt.toISOString()
             }
         }, { status: 201 });
 

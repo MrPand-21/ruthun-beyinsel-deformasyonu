@@ -1,17 +1,17 @@
-import { default as mg } from 'mongoose';
+import { MongoClient, ServerApiVersion } from 'mongodb';
 import { MONGODB_URI } from '$env/static/private';
 
 declare global {
-    var mongoose: {
-        conn: null | typeof mg;
-        promise: null | Promise<typeof mg>;
+    var mongoClient: {
+        conn: MongoClient | null;
+        promise: Promise<MongoClient> | null;
     };
 }
 
-let cached = globalThis.mongoose;
+let cached = globalThis.mongoClient;
 
 if (!cached) {
-    cached = globalThis.mongoose = { conn: null, promise: null };
+    cached = globalThis.mongoClient = { conn: null, promise: null };
 }
 
 export async function connectToDatabase() {
@@ -20,15 +20,19 @@ export async function connectToDatabase() {
     }
 
     if (!cached.promise) {
-        const opts = {
-            bufferCommands: false,
-        };
+        const client = new MongoClient(MONGODB_URI, {
+            serverApi: {
+                version: ServerApiVersion.v1,
+                strict: true,
+                deprecationErrors: true,
+            }
+        });
 
-        cached.promise = mg.connect(MONGODB_URI, opts)
-            .then((mongoose) => {
+        cached.promise = client.connect()
+            .then((client) => {
                 console.log('MongoDB connected successfully');
-                return mongoose;
-            })
+                return client;
+            });
     }
 
     try {
@@ -39,4 +43,15 @@ export async function connectToDatabase() {
     }
 
     return cached.conn;
+}
+
+export function getCollection(database: string, collection: string) {
+    return connectToDatabase()
+        .then((client) => client.db(database).collection(collection));
+}
+
+// Helper function to get database name from MongoDB URI
+export function getDatabaseName() {
+    const dbName = MONGODB_URI.split('/').pop()?.split('?')[0];
+    return dbName || 'app';
 }

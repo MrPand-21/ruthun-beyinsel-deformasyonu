@@ -5,12 +5,18 @@ import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, AUTH_SECRET } from '$env/static/private';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import { MongooseAdapter } from "@brendon1555/authjs-mongoose-adapter"
 import { MONGODB_URI } from '$env/static/private';
 
-import { User, type UserDocument } from '$lib/server/models/user.model';
+import { UserService, type UserDocument } from '$lib/server/models/user.model';
 import { connectToDatabase } from '$lib/server/db/mongodb';
 import { comparePassword } from '$lib/server/utils';
+
+// Create MongoDB adapter for Auth.js
+import { MongoClient } from 'mongodb';
+
+// Create a client and connect
+const client = new MongoClient(MONGODB_URI);
+const clientPromise = client.connect();
 
 await connectToDatabase().catch(err => {
     console.error('Failed to connect to MongoDB:', err);
@@ -36,7 +42,7 @@ const authorization: Handle = async ({ event, resolve }) => {
 
 export const handle = sequence(
     SvelteKitAuth({
-        adapter: MongooseAdapter(MONGODB_URI),
+        adapter: MongoDBAdapter(clientPromise),
         providers: [
             Google({
                 clientId: GOOGLE_CLIENT_ID,
@@ -60,21 +66,36 @@ export const handle = sequence(
                 },
                 async authorize(credentials) {
                     try {
-
-                        const user: UserDocument | null = await User.findOne({ email: credentials?.email });
-
-                        if (!user || !credentials?.password) {
+                        if (!credentials?.email || !credentials?.password) {
+                            console.log("Missing email or password");
                             return null;
                         }
 
-                        const isValid = await comparePassword(user, credentials.password as any);
+                        const user = await UserService.findByEmail((credentials.email as string).toLowerCase());
+
+                        if (!user) {
+                            console.log("User not found");
+                            return null;
+                        }
+
+                        // Explicitly log what we're comparing to help debug
+                        console.log("Comparing passwords for login:", {
+                            hasPassword: !!user.password,
+                            inputLength: (credentials.password as string).length
+                        });
+
+                        const isValid = await UserService.verifyPassword(
+                            (credentials.password as string),
+                            user.password || ''
+                        );
 
                         if (!isValid) {
+                            console.log("Password verification failed");
                             return null;
                         }
 
                         return {
-                            id: user._id.toString(),
+                            id: user._id!.toString(),
                             email: user.email,
                             name: user.name,
                             image: user.image
