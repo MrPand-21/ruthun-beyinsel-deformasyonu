@@ -29,7 +29,7 @@ export const actions: Actions = {
 
 		if (!form.valid) {
 			return fail(400, {
-				form
+				form,
 			});
 		}
 

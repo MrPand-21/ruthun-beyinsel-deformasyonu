@@ -1,44 +1,46 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 :root {
-    --text-primary: #18181b;
-    --text-inverted: #fafafa;
-    --bg: #f9f9f9;
-    --secondary: #682121;
-    --secondary-light: #8c3030;
-    --primary: oklch(0.828 0.189 84.429)
-        /* #fbbf24 , amber-400 */
-    ;
-    background-color: var(--bg);
-    color: var(--text-primary);
+  --text-primary: #18181b;
+  --text-inverted: #fafafa;
+  --bg: #f9f9f9;
+  --secondary: #682121;
+  --secondary-light: #8c3030;
+  --primary: oklch(0.828 0.189 84.429) /* #fbbf24 , amber-400 */;
+  background-color: var(--bg);
+  color: var(--text-primary);
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
-        --text-primary: #fafafa;
-        --text-inverted: #18181b;
-        --bg: #18181b;
-        --bg-inverted: #fafafa;
-        background-color: var(--bg);
-        color: var(--text-primary);
-    }
+  :root {
+    --text-primary: #fafafa;
+    --text-inverted: #18181b;
+    --bg: #18181b;
+    --bg-inverted: #fafafa;
+    background-color: var(--bg);
+    color: var(--text-primary);
+  }
 }
 
 .feature-card:hover {
-    background: linear-gradient(135deg, rgba(140, 48, 48, 0.014), rgba(251, 190, 36, 0.032));
+  background: linear-gradient(
+    135deg,
+    rgba(140, 48, 48, 0.014),
+    rgba(251, 190, 36, 0.032)
+  );
 }
 
 .feature-shadow {
-    @apply absolute inset-0 -z-10 rounded-xl opacity-0 transition-opacity duration-300 bg-gradient-to-br from-[#8c3030]/20 via-amber-500/20 to-transparent group-hover:opacity-100;
-    filter: blur(20px);
+  @apply absolute inset-0 -z-10 rounded-xl opacity-0 transition-opacity duration-300 bg-gradient-to-br from-[#8c3030]/20 via-amber-500/20 to-transparent group-hover:opacity-100;
+  filter: blur(20px);
 }
 
 .call-to-action {
-    @apply text-lg font-semibold relative;
-    text-shadow: 0 2px 4px rgba(140, 48, 48, 0.1);
+  @apply text-lg font-semibold relative;
+  text-shadow: 0 2px 4px rgba(140, 48, 48, 0.1);
 }
 
 :global(.dark) .animated-button {
-    --text-primary: #fafafa;
-    --text-inverted: #18181b;
+  --text-primary: #fafafa;
+  --text-inverted: #18181b;
 }
