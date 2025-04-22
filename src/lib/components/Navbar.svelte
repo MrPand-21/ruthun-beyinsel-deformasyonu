@@ -156,7 +156,6 @@
         </div>
     </div>
 
-    <!-- Mobile Menu -->
     {#if mobileMenuOpen}
         <div
             class="md:hidden absolute top-20 right-4 left-4 z-50 py-4 px-6 rounded-2xl bg-white/90 dark:bg-gray-800/90
