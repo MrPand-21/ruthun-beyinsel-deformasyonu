@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  // ...existing config
   theme: {
     extend: {
       animation: {
@@ -26,7 +25,8 @@ export default {
     },
     content: [
       "./src/**/*.{html,js,svelte,ts}",
-      "./src/lib/components/Hero.svelte",
+      "./public/index.html",
+
     ],
   },
   darkMode: "class",
@@ -60,17 +60,16 @@ export default {
     },
 
     ...[
-      "logo-end",
+      "bg",
+      "fr",
+      "fr-inverted",
+      "moon-color",
       "primary",
-      "secondary",
-      "pop",
-      "pop-soft",
-      "foreground",
-      "foreground-soft",
-      "background",
+      "primary-50",
+      "primary-100",
+      "primary-200",
       "secondary-soft",
-      "secondary-soft-2",
-      "primary-soft",
+      "secondary",
     ].flatMap((customColor) => [
       `bg-${customColor}`,
       `border-${customColor}`,

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import LoginForm from "./components/login-form.svelte";
 	import Seo from "$lib/components/SEO.svelte";
-	import { superForm } from "sveltekit-superforms";
 
 	let { data } = $props();
 </script>

@@ -30,7 +30,6 @@ export async function connectToDatabase() {
 
         cached.promise = client.connect()
             .then((client) => {
-                console.log('MongoDB connected successfully');
                 return client;
             });
     }
@@ -50,7 +49,6 @@ export function getCollection(database: string, collection: string) {
         .then((client) => client.db(database).collection(collection));
 }
 
-// Helper function to get database name from MongoDB URI
 export function getDatabaseName() {
     const dbName = MONGODB_URI.split('/').pop()?.split('?')[0];
     return dbName || 'app';

@@ -15,6 +15,8 @@
 	import { Icons } from "$lib/components/icons";
 	import Seo from "$lib/components/SEO.svelte";
 	import Google from "$lib/components/icons/google.svelte";
+	import { CrInput } from "$lib/components/ui/input";
+	import CrButton from "$lib/components/ui/button/CrButton.svelte";
 
 	export let data;
 
@@ -81,185 +83,109 @@
 	keywords="register, sign up, create account"
 />
 
-<main class="relative p-5 py-6 sm:px-8">
-	<div class="mx-auto my-6 grid max-w-md place-items-center">
-		<div
-			class="w-full rounded-xl bg-card p-6 shadow-lg transition-all duration-200 hover:shadow-xl"
-		>
-			<h1
-				class="mx-auto mb-5 text-center text-2xl font-bold text-primary"
+<main
+	class="relative p-5 py-6 sm:px-8 mx-auto my-12 grid max-w-5xl place-items-center"
+>
+	<div class="mt-4 grid min-w-[19rem] max-w-md gap-2">
+		<div class="mb-6">
+			<button
+				on:click={handleGoogleSignIn}
+				class="flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
 			>
-				Create an Account
-			</h1>
+				<Google class="h-5 w-5" />
+				<span>Sign up with Google</span>
+			</button>
+		</div>
 
-			<!-- Google Sign Up Button -->
-			<div class="mb-6">
-				<button
-					on:click={handleGoogleSignIn}
-					class="flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-				>
-					<Google class="h-5 w-5" />
-					<span>Sign up with Google</span>
-				</button>
-			</div>
+		<div class="relative mb-6 flex items-center">
+			<div class="flex-grow border-t border-gray-300"></div>
+			<span class="mx-4 flex-shrink text-xs text-gray-500"
+				>OR CONTINUE WITH EMAIL</span
+			>
+			<div class="flex-grow border-t border-gray-300"></div>
+		</div>
 
-			<!-- Divider -->
-			<div class="relative mb-6 flex items-center">
-				<div class="flex-grow border-t border-gray-300"></div>
-				<span class="mx-4 flex-shrink text-xs text-gray-500"
-					>OR CONTINUE WITH EMAIL</span
-				>
-				<div class="flex-grow border-t border-gray-300"></div>
-			</div>
+		<div class="w-full">
+			<form method="POST" use:enhance class="space-y-4">
+				<input
+					type="hidden"
+					name="browserHash"
+					bind:value={$formData.browserHash}
+				/>
+				<input
+					type="hidden"
+					name="userAgent"
+					bind:value={$formData.userAgent}
+				/>
 
-			<div class="w-full">
-				<form method="POST" use:enhance class="space-y-4">
-					<input
-						type="hidden"
-						name="browserHash"
-						bind:value={$formData.browserHash}
-					/>
-					<input
-						type="hidden"
-						name="userAgent"
-						bind:value={$formData.userAgent}
-					/>
+				<CrInput
+					label="Full Name"
+					name="name"
+					bind:value={$formData.name}
+					placeholder="John Doe"
+					error={$errors.name}
+					required
+				/>
 
-					<!-- Name -->
-					<div class="space-y-2">
-						<label
-							for="name"
-							class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-						>
-							Full Name
-						</label>
-						<input
-							type="text"
-							id="name"
-							name="name"
-							bind:value={$formData.name}
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-							placeholder="John Doe"
-						/>
-						{#if $errors.name}
-							<p class="text-sm text-destructive">
-								{$errors.name}
-							</p>
-						{/if}
-					</div>
+				<CrInput
+					label="Email Address"
+					name="email"
+					type="email"
+					bind:value={$formData.email}
+					placeholder="you@example.com"
+					error={$errors.email}
+					required
+				/>
 
-					<!-- Email -->
-					<div class="space-y-2">
-						<label
-							for="email"
-							class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-						>
-							Email Address
-						</label>
-						<input
-							type="email"
-							id="email"
-							name="email"
-							bind:value={$formData.email}
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-							placeholder="you@example.com"
-						/>
-						{#if $errors.email}
-							<p class="text-sm text-destructive">
-								{$errors.email}
-							</p>
-						{/if}
-					</div>
+				<CrInput
+					label="Password"
+					name="password"
+					type="password"
+					bind:value={$formData.password}
+					placeholder="********"
+					error={$errors.password}
+					required
+				/>
 
-					<!-- Password -->
-					<div class="space-y-2">
-						<label
-							for="password"
-							class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-						>
-							Password
-						</label>
-						<input
-							type="password"
-							id="password"
-							name="password"
-							bind:value={$formData.password}
-							placeholder="********"
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-						/>
-						{#if $errors.password}
-							<p class="text-sm text-destructive">
-								{$errors.password}
-							</p>
-						{/if}
-					</div>
+				<CrInput
+					label="Confirm Password"
+					name="confirmPassword"
+					type="password"
+					bind:value={$formData.confirmPassword}
+					placeholder="********"
+					error={$errors.confirmPassword}
+					required
+				/>
 
-					<!-- Confirm Password -->
-					<div class="space-y-2">
-						<label
-							for="confirmPassword"
-							class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-						>
-							Confirm Password
-						</label>
-						<input
-							type="password"
-							id="confirmPassword"
-							name="confirmPassword"
-							bind:value={$formData.confirmPassword}
-							placeholder="********"
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-						/>
-						{#if $errors.confirmPassword}
-							<p class="text-sm text-destructive">
-								{$errors.confirmPassword}
-							</p>
-						{/if}
-					</div>
-
-					{#if errorResponse && errorResponse.message}
-						<p class="text-sm text-destructive">
-							{errorResponse.message}
-						</p>
-					{/if}
-
-					<Button.Root
-						disabled={isLoadingFormSubmit}
-						class="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-					>
-						{#if isLoadingFormSubmit}
-							<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
-						{/if}
-						Create Account
-					</Button.Root>
-				</form>
-
-				<div class="mt-6 text-center">
-					<p class="text-sm text-gray-500">
-						Already have an account?
-						<Button.Root
-							href="/login"
-							class="p-0 text-primary font-medium hover:underline"
-							>Sign In</Button.Root
-						>
+				{#if errorResponse && errorResponse.message}
+					<p class="text-sm text-amber-500">
+						{errorResponse.message}
 					</p>
-				</div>
+				{/if}
+
+				<CrButton disabled={isLoadingFormSubmit}>
+					{#if isLoadingFormSubmit}
+						<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
+					{/if}
+					Create Account
+				</CrButton>
+			</form>
+
+			<div class="mt-6 text-center">
+				<p class="text-sm text-gray-500">
+					Already have an account?
+					<Button.Root
+						href="/login"
+						class="p-0 text-sky-600 font-medium hover:underline"
+						>Sign In</Button.Root
+					>
+				</p>
 			</div>
 		</div>
 	</div>
 </main>
 
 <style>
-	/* Add some nice animations and transitions */
-	input,
-	button {
-		transition: all 0.2s ease;
-	}
-
-	input:focus {
-		transform: translateY(-1px);
-	}
-
 	button:active:not(:disabled) {
 		transform: translateY(1px);
 	}

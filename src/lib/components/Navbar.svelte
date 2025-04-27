@@ -79,24 +79,36 @@
                 </div>
             {:else}
                 <div class="flex items-center space-x-3">
-                    <a
-                        href="/login"
-                        class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-blue-500/30
+                    {#if $page.data.session}
+                        <img
+                            src={$page.data.session.user?.image}
+                            alt={$page.data.session.user?.name || "User"}
+                            class="h-8 w-8 rounded-full border-2 border-gray-200"
+                        />
+                        <span
+                            class="text-sm font-medium text-gray-800 dark:text-gray-200"
+                            >{$page.data.session.user?.name || "User"}</span
+                        >
+                    {:else}
+                        <a
+                            href="/login"
+                            class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-blue-500/30
                         hover:border-blue-500
                         transition-all duration-300 transform"
-                    >
-                        <Icons.logIn class="h-5 w-5" />
-                        <span>Sign In</span>
-                    </a>
-                    <a
-                        href="/register"
-                        class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-blue-600 text-white
+                        >
+                            <Icons.logIn class="h-5 w-5" />
+                            <span>Sign In</span>
+                        </a>
+                        <a
+                            href="/register"
+                            class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-blue-600 text-white
                         hover:bg-blue-700
                         transition-all duration-300 transform"
-                    >
-                        <Icons.userPlus class="h-5 w-5" />
-                        <span>Register</span>
-                    </a>
+                        >
+                            <Icons.userPlus class="h-5 w-5" />
+                            <span>Register</span>
+                        </a>
+                    {/if}
                 </div>
             {/if}
 

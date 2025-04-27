@@ -1,28 +1,6 @@
-import { SvelteKitAuth } from '@auth/sveltekit';
-import Google from '@auth/core/providers/google';
-import Credentials from '@auth/core/providers/credentials';
-import { MongoDBAdapter } from '@auth/mongodb-adapter';
-import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, AUTH_SECRET } from '$env/static/private';
-import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import { MONGODB_URI } from '$env/static/private';
-
-import { UserService, type UserDocument } from '$lib/server/models/user.model';
-import { connectToDatabase } from '$lib/server/db/mongodb';
-import { comparePassword } from '$lib/server/utils';
-
-// Create MongoDB adapter for Auth.js
-import { MongoClient } from 'mongodb';
-
-// Create a client and connect
-const client = new MongoClient(MONGODB_URI);
-const clientPromise = client.connect();
-
-await connectToDatabase().catch(err => {
-    console.error('Failed to connect to MongoDB:', err);
-    process.exit(1);
-});
-
+import { redirect, type Handle } from "@sveltejs/kit";
+import { SvelteKitAuthHandle } from '$lib/auth';
 
 const authorization: Handle = async ({ event, resolve }) => {
     const protectedRoutes = ['/activities', '/send'];
@@ -41,97 +19,6 @@ const authorization: Handle = async ({ event, resolve }) => {
 };
 
 export const handle = sequence(
-    SvelteKitAuth({
-        adapter: MongoDBAdapter(clientPromise),
-        providers: [
-            Google({
-                clientId: GOOGLE_CLIENT_ID,
-                clientSecret: GOOGLE_CLIENT_SECRET,
-                profile(profile) {
-                    return {
-                        id: profile.sub,
-                        name: profile.name,
-                        email: profile.email,
-                        image: profile.picture,
-                        provider: 'google',
-                        providerId: profile.sub
-                    };
-                }
-            }),
-            Credentials({
-                name: 'Credentials',
-                credentials: {
-                    email: { label: "Email", type: "email" },
-                    password: { label: "Password", type: "password" }
-                },
-                async authorize(credentials) {
-                    try {
-                        if (!credentials?.email || !credentials?.password) {
-                            console.log("Missing email or password");
-                            return null;
-                        }
-
-                        const user = await UserService.findByEmail((credentials.email as string).toLowerCase());
-
-                        if (!user) {
-                            console.log("User not found");
-                            return null;
-                        }
-
-                        // Explicitly log what we're comparing to help debug
-                        console.log("Comparing passwords for login:", {
-                            hasPassword: !!user.password,
-                            inputLength: (credentials.password as string).length
-                        });
-
-                        const isValid = await UserService.verifyPassword(
-                            (credentials.password as string),
-                            user.password || ''
-                        );
-
-                        if (!isValid) {
-                            console.log("Password verification failed");
-                            return null;
-                        }
-
-                        return {
-                            id: user._id!.toString(),
-                            email: user.email,
-                            name: user.name,
-                            image: user.image
-                        };
-                    } catch (error) {
-                        console.error('Error in authorize:', error);
-                        return null;
-                    }
-                }
-            })
-        ],
-        callbacks: {
-            async jwt({ token, user, account }) {
-                // Initial sign in
-                if (account && user) {
-                    return {
-                        ...token,
-                        userId: user.id,
-                        provider: account.provider
-                    };
-                }
-                return token;
-            },
-            async session({ session, token }) {
-                if (token && session.user) {
-                    session.user.id = token.userId as string;
-                    // session.user.provider = token.provider as string;
-                }
-                return session;
-            }
-        },
-        session: {
-            strategy: 'jwt'
-        },
-        secret: AUTH_SECRET,
-        debug: true
-    }).handle,
+    SvelteKitAuthHandle,
     authorization
 );
