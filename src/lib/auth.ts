@@ -17,7 +17,6 @@ await connectToDatabase().catch(err => {
 });
 
 
-
 export const { signIn, signOut, handle: SvelteKitAuthHandle } = SvelteKitAuth({
     trustHost: true,
     adapter: MongoDBAdapter(clientPromise),
@@ -107,5 +106,10 @@ export const { signIn, signOut, handle: SvelteKitAuthHandle } = SvelteKitAuth({
         strategy: 'jwt'
     },
     secret: AUTH_SECRET,
-    debug: true
+    debug: true,
+    pages: {
+        signIn: "/login",
+        signOut: "/login",
+        newUser: "/register"
+    }
 })

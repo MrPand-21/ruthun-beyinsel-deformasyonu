@@ -6,13 +6,14 @@
 	import { PUBLIC_LANDING_PAGE } from "$env/static/public";
 	import { getEmptyErrorResponse } from "$lib/services/error.service";
 	import { getSiteAnalytics } from "$lib/services/analytics.service";
-	import { formSchema } from "../schema";
+	import { formSchema } from "./schema";
 	import type { AnalyticsDto, ErrorResponseType } from "$lib/types";
 	import { Icons } from "$lib/components/icons";
 	import Google from "$lib/components/icons/google.svelte";
 	import { CrInput } from "$lib/components/ui/input";
 	import CrButton from "$lib/components/ui/button/CrButton.svelte";
 	import { signIn } from "@auth/sveltekit/client";
+	import { goto } from "$app/navigation";
 
 	let { data: formProps } = $props();
 
@@ -54,7 +55,7 @@
 		},
 	});
 
-	const { form: formData, enhance, errors } = form;
+	const { form: formData, enhance, errors, reset } = form;
 
 	$effect(() => {
 		$formData.browserHash = analytics.browserHash;
@@ -70,10 +71,46 @@
 	const handleGoogleSignIn = () => {
 		signIn("google");
 	};
+
+	const handleFormSubmit = async (event: Event) => {
+		event.preventDefault();
+		isLoadingFormSubmit = true;
+		errorResponse = null;
+
+		const email = $formData.email;
+		const password = $formData.password;
+
+		try {
+			const result = await signIn("credentials", {
+				email,
+				password,
+			});
+
+			// if (result?.url) {
+			// 	goto(result.url);
+			// 	return;
+			// } else if (result?.) {
+			// 	errorResponse = { message: "Invalid email or password" };
+			// } else {
+			// 	goto("/");
+			// }
+		} catch (e) {
+			errorResponse = getEmptyErrorResponse(
+				"Something went wrong. Please try again.",
+			);
+		} finally {
+			isLoadingFormSubmit = false;
+		}
+	};
 </script>
 
 <div class="mt-4 grid min-w-[19rem] max-w-md gap-6">
-	<form method="POST" use:enhance class="space-y-4">
+	<form
+		method="POST"
+		use:enhance
+		onsubmit={handleFormSubmit}
+		class="space-y-4"
+	>
 		<input
 			type="hidden"
 			name="browserHash"
@@ -135,7 +172,7 @@
 			</div>
 		{/if}
 
-		<CrButton disabled={isLoadingFormSubmit}>
+		<CrButton type="submit" disabled={isLoadingFormSubmit}>
 			{#if isLoadingFormSubmit}
 				<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
 			{/if}

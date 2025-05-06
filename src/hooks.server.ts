@@ -8,10 +8,18 @@ const authorization: Handle = async ({ event, resolve }) => {
         event.url.pathname.startsWith(route)
     );
 
+    console.log('Authorization middleware:', {
+        isProtectedRoute,
+        pathname: event.url.pathname,
+        method: event.request.method,
+        headers: event.request.headers.get('authorization'),
+        session: await event.locals.auth()
+    });
+
     if (isProtectedRoute) {
         const session = await event.locals.auth();
         if (!session) {
-            redirect(303, `/login?callbackUrl=${event.url.pathname}`);
+            redirect(307, `/login?callbackUrl=${event.url.pathname}`);
         }
     }
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import LoginForm from "./components/login-form.svelte";
 	import Seo from "$lib/components/SEO.svelte";
+	import LoginForm from "./login-form.svelte";
 
 	let { data } = $props();
 </script>

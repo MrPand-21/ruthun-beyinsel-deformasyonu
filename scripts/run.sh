@@ -35,26 +35,11 @@ for frame in "${graffiti_frames[@]}"; do
     sleep 0.1 
 done
 
-spinner() {
-    local pid=$1
-    local delay=0.07 
-    local spinstr='|/-\'
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
-    printf "    \b\b\b\b"
-}
-
 echo -e "${BLUE}[*] Checking if port 5173 is in use...${NC}"
 
 if ! nc -z localhost 5173 >/dev/null 2>&1; then
     echo -e "${GREEN}[+] Port 5173 is not in use. Starting npm run dev...${NC}"
-    npm run dev &
-    spinner $!
+    npm run dev:run
 else
     echo -e "${YELLOW}[!] Something is already running on port 5173. Attempting to terminate...${NC}"
     PID=$(lsof -t -i:5173)
@@ -71,7 +56,7 @@ else
             sleep 0.2
         done
             echo -e "\n${GREEN}[+] Starting npm run dev...${NC}"
-            npm run dev
+            npm run dev:run
     else
             echo -e "${RED}[-] Could not find process on port 5173.${NC}"
     fi
