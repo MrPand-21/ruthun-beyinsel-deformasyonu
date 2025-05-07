@@ -14,7 +14,7 @@
 	import CrButton from "$lib/components/ui/button/CrButton.svelte";
 	import { goto } from "$app/navigation";
 
-	let { data: formProps, source, googleAuthURL } = $props();
+	let { data: formProps, source } = $props();
 
 	let isLoadingFormSubmit = $state(false);
 	let errorResponse: ErrorResponseType | null = $state(null);
@@ -74,10 +74,6 @@
 			analytics = await getSiteAnalytics();
 		}
 	});
-
-	const handleGoogleSignIn = () => {
-		window.location.href = googleAuthURL;
-	};
 </script>
 
 <div class="mt-4 grid min-w-[19rem] max-w-md gap-6">

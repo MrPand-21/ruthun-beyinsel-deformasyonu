@@ -4,19 +4,19 @@
     import { quintOut } from "svelte/easing";
     import { Icons } from "./icons";
     import { page } from "$app/stores";
-    import { goto } from "$app/navigation";
+    import { enhance } from "$app/forms";
 
     let mobileMenuOpen = $state(false);
 
-    $: user = $page.data.user;
+    let user = $derived($page.data.user);
 
     function toggleMobileMenu() {
         mobileMenuOpen = !mobileMenuOpen;
     }
 
-    async function handleSignOut() {
+    function handleSignOut() {
         mobileMenuOpen = false;
-        window.location.href = "/logout";
+        // The form will handle the submission
     }
 </script>
 
@@ -65,15 +65,17 @@
                             {(user.name || "U").charAt(0).toUpperCase()}
                         </div>
                     {/if}
-                    <button
-                        on:click={handleSignOut}
-                        class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-red-500/30
-                        hover:border-red-500
-                        transition-all duration-300 transform"
-                    >
-                        <Icons.logOut class="h-5 w-5" />
-                        <span>Sign Out</span>
-                    </button>
+                    <form action="/logout" method="POST" use:enhance>
+                        <button
+                            type="submit"
+                            class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-red-500/30
+                            hover:border-red-500
+                            transition-all duration-300 transform"
+                        >
+                            <Icons.logOut class="h-5 w-5" />
+                            <span>Sign Out</span>
+                        </button>
+                    </form>
                 </div>
             {:else}
                 <div class="flex items-center space-x-3">
@@ -205,15 +207,18 @@
                             >
                         </div>
 
-                        <button
-                            class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/20
-                            text-red-600 dark:text-red-400 transition-colors"
-                            onclick={() => handleSignOut()}
-                            transition:scale={{ duration: 200, delay: 200 }}
-                        >
-                            <Icons.logOut class="h-6 w-6" />
-                            <span class="font-medium">Sign Out</span>
-                        </button>
+                        <form action="/logout" method="POST" use:enhance>
+                            <button
+                                type="submit"
+                                class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/20
+                                text-red-600 dark:text-red-400 transition-colors"
+                                onclick={() => (mobileMenuOpen = false)}
+                                transition:scale={{ duration: 200, delay: 200 }}
+                            >
+                                <Icons.logOut class="h-6 w-6" />
+                                <span class="font-medium">Sign Out</span>
+                            </button>
+                        </form>
                     </div>
                 {:else}
                     <div

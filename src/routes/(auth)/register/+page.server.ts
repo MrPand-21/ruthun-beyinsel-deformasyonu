@@ -9,6 +9,7 @@ import { hash } from "@node-rs/argon2";
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
 import { UserService } from '$lib/server/models/user.model';
+import { hashPassword } from '$lib/server/utils';
 
 export const load: PageServerLoad = async (event) => {
     const session = await event.locals.session;
@@ -43,17 +44,10 @@ export const actions: Actions = {
             });
         }
 
-        const passwordHash = await hash(password, {
-            memoryCost: 19456,
-            timeCost: 2,
-            outputLen: 32,
-            parallelism: 1
-        });
-
         const user = await UserService.create({
             username: name,
             email: email.toLowerCase(),
-            password: passwordHash
+            password: await hashPassword(password),
         });
 
         console.log('User registered successfully:', user._id);

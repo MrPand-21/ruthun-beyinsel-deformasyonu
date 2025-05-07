@@ -1,9 +1,9 @@
-import type { LayoutServerLoad } from './$types';
+import type { PageServerLoad } from "./$types";
 
-export const load: LayoutServerLoad = async (event) => {
-    const session = await event.locals.auth.validate();
+export const load: PageServerLoad = async (event) => {
+    const user = await event.locals.user;
 
     return {
-        user: session ? session.user : null
+        username: user ? user.username : null
     };
 };
