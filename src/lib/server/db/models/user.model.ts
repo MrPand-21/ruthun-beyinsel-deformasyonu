@@ -1,6 +1,9 @@
 import { ObjectId } from 'mongodb';
-import bcrypt from 'bcryptjs';
-import { getDatabaseName, getCollection } from '../db/mongodb';
+// import bcrypt from 'bcryptjs';
+import { getDatabaseName, getCollection } from '../mongodb';
+import { hashPassword } from '$lib/server/migrations/password';
+import { generateRandomRecoveryCode } from '$lib/server/migrations/utils';
+import { encryptString } from '$lib/server/migrations/encryption';
 
 export interface UserDocument {
     _id?: ObjectId;
@@ -9,15 +12,21 @@ export interface UserDocument {
     username: string;
     image?: string;
     provider?: string;
+    recoveryCode?: Uint8Array;
     providerId?: string;
     createdAt: Date;
     updatedAt: Date;
+    emailVerified: boolean;
+    registered2FA: boolean;
 }
 
 const COLLECTION = 'users';
 const DB_NAME = getDatabaseName();
 
 export const UserService = {
+    verifyUsernameInput: (username: string): boolean => {
+        return username.length > 3 && username.length < 32 && username.trim() === username;
+    },
     findByEmail: async (email: string) => {
         const collection = await getCollection(DB_NAME, COLLECTION);
         return collection.findOne({ email: email.toLowerCase() }) as Promise<UserDocument | null>;
@@ -37,9 +46,10 @@ export const UserService = {
         const collection = await getCollection(DB_NAME, COLLECTION);
 
         if (userData.password) {
-            const salt = await bcrypt.genSalt(10);
-            userData.password = await bcrypt.hash(userData.password, salt);
+            userData.password = await hashPassword(userData.password);
         }
+
+        userData.recoveryCode = encryptString(generateRandomRecoveryCode());
 
         const now = new Date();
         const newUser = {
@@ -53,17 +63,16 @@ export const UserService = {
         return { _id: result.insertedId, ...newUser };
     },
 
-    update: async (id: string, userData: Partial<UserDocument>) => {
+    update: async (_id: ObjectId, userData: Partial<UserDocument>) => {
         const collection = await getCollection(DB_NAME, COLLECTION);
-        const { _id, createdAt, ...updateData } = userData as any;
+        const { createdAt, ...updateData } = userData as any;
 
         if (updateData.password) {
-            const salt = await bcrypt.genSalt(10);
-            updateData.password = await bcrypt.hash(updateData.password, salt);
+            updateData.password = await hashPassword(updateData.password);
         }
 
         const result = await collection.updateOne(
-            { _id: new ObjectId(id) },
+            { _id },
             {
                 $set: {
                     ...updateData,

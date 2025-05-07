@@ -31,12 +31,6 @@
 		"zod": "^3.24.2"
 	},
 	"dependencies": {
-		"@auth/core": "^0.39.0",
-		"@auth/express": "^0.10.0",
-		"@auth/mongodb-adapter": "^3.9.0",
-		"@auth/sveltekit": "^1.9.0",
-		"@brendon1555/authjs-mongoose-adapter": "^1.1.0",
-		"@lucia-auth/adapter-mongodb": "^1.0.3",
 		"@node-rs/argon2": "^2.0.2",
 		"amplify-adapter": "^0.2.0",
 		"arctic": "^3.6.0",
@@ -47,7 +41,6 @@
 		"lucia": "^3.2.2",
 		"lucide-svelte": "^0.476.0",
 		"mode-watcher": "^0.5.1",
-		"mongodb": "^6.16.0",
-		"mongoose": "^8.13.2"
+		"mongodb": "^6.16.0"
 	}
 }

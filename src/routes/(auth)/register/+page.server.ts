@@ -8,7 +8,7 @@ import { hash } from "@node-rs/argon2";
 
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
-import { UserService } from '$lib/server/models/user.model';
+import { UserService } from '$lib/server/db/models/user.model';
 import { hashPassword } from '$lib/server/utils';
 
 export const load: PageServerLoad = async (event) => {

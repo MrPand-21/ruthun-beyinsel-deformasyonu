@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { getDatabaseName, getCollection } from '../db/mongodb';
+import { getDatabaseName, getCollection } from '../mongodb';
 
 export interface ActivityDocument {
     _id?: ObjectId;

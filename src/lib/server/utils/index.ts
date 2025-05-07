@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import type { UserDocument } from "../models/user.model";
+import type { UserDocument } from "../db/models/user.model";
 import { hash, verify } from "@node-rs/argon2";
 
 export const comparePassword = async function (user: UserDocument, candidatePassword: string): Promise<boolean> {

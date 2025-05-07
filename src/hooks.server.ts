@@ -1,55 +1,49 @@
-import { sequence } from '@sveltejs/kit/hooks';
-import { redirect, type Handle } from "@sveltejs/kit";
-import { lucia } from './lib/server/auth';
+import { RefillingTokenBucket } from "$lib/server/rate-limit";
+import { validateSessionToken, setSessionTokenCookie, deleteSessionTokenCookie } from "$lib/server/session";
+import { sequence } from "@sveltejs/kit/hooks";
 
-const handleAuth: Handle = async ({ event, resolve }) => {
-    const sessionId = event.cookies.get(lucia.sessionCookieName);
-    if (!sessionId) {
+import type { Handle } from "@sveltejs/kit";
+
+const bucket = new RefillingTokenBucket<string>(100, 1);
+
+const rateLimitHandle: Handle = async ({ event, resolve }) => {
+    // Note: Assumes X-Forwarded-For will always be defined.
+    const clientIP = event.request.headers.get("X-Forwarded-For");
+    if (clientIP === null) {
+        return resolve(event);
+    }
+    let cost: number;
+    if (event.request.method === "GET" || event.request.method === "OPTIONS") {
+        cost = 1;
+    } else {
+        cost = 3;
+    }
+    if (!bucket.consume(clientIP, cost)) {
+        return new Response("Too many requests", {
+            status: 429
+        });
+    }
+    return resolve(event);
+};
+
+const authHandle: Handle = async ({ event, resolve }) => {
+    const token = event.cookies.get("session") ?? null;
+    if (token === null) {
         event.locals.user = null;
         event.locals.session = null;
         return resolve(event);
     }
 
-    const { session, user } = await lucia.validateSession(sessionId);
-    if (session && session.fresh) {
-        const sessionCookie = lucia.createSessionCookie(session.id);
-        // sveltekit types deviates from the de-facto standard
-        // you can use 'as any' too
-        event.cookies.set(sessionCookie.name, sessionCookie.value, {
-            path: ".",
-            ...sessionCookie.attributes
-        });
+    const { session, user } = validateSessionToken(token);
+    if (session !== null) {
+        setSessionTokenCookie(event, token, session.expiresAt);
+    } else {
+        deleteSessionTokenCookie(event);
     }
-    if (!session) {
-        const sessionCookie = lucia.createBlankSessionCookie();
-        event.cookies.set(sessionCookie.name, sessionCookie.value, {
-            path: ".",
-            ...sessionCookie.attributes
-        });
-    }
-    event.locals.user = user;
+
     event.locals.session = session;
-    return resolve(event);
-
-};
-
-const authorization: Handle = async ({ event, resolve }) => {
-    const protectedRoutes = ['/activities', '/send'];
-    const isProtectedRoute = protectedRoutes.some(route =>
-        event.url.pathname.startsWith(route)
-    );
-
-    if (isProtectedRoute) {
-        const session = await event.locals.session;
-        if (!session) {
-            redirect(307, `/login?callbackUrl=${event.url.pathname}`);
-        }
-    }
-
+    event.locals.user = user;
     return resolve(event);
 };
 
-export const handle = sequence(
-    handleAuth,
-    authorization
-);
+export const handle = sequence(rateLimitHandle, authHandle);

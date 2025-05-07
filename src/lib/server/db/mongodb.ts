@@ -1,4 +1,4 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { MongoClient, ServerApiVersion, type Document } from 'mongodb';
 import { MONGODB_URI } from '$env/static/private';
 
 declare global {
@@ -28,10 +28,7 @@ export async function connectToDatabase() {
             }
         });
 
-        cached.promise = client.connect()
-            .then((client) => {
-                return client;
-            });
+        cached.promise = client.connect().then(client => client);
     }
 
     try {
@@ -44,22 +41,13 @@ export async function connectToDatabase() {
     return cached.conn;
 }
 
-export function getCollection(database: string, collection: string) {
-    return connectToDatabase()
-        .then((client) => client.db(database).collection(collection));
+export function getCollection<T extends Document>(database: string, collection: string) {
+    return connectToDatabase().then((client) =>
+        client.db(database).collection<T>(collection)
+    );
 }
 
 export function getDatabaseName() {
     const dbName = MONGODB_URI.split('/').pop()?.split('?')[0];
     return dbName || 'app';
-}
-
-export interface UserDoc {
-    _id: string;
-}
-
-export interface SessionDoc {
-    _id: string;
-    expires_at: Date;
-    user_id: string;
 }

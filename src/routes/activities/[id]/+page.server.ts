@@ -2,7 +2,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { ObjectId } from 'mongodb';
-import { ActivityService } from '$lib/server/models/activity.model';
+import { ActivityService } from '$lib/server/db/models/activity.model';
 
 export const load: PageServerLoad = async (event) => {
     const session = await event.locals.auth();

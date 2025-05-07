@@ -4,7 +4,7 @@ import { superValidate } from 'sveltekit-superforms/server';
 import { lucia } from '../../../lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
-import { UserService } from '$lib/server/models/user.model';
+import { UserService } from '$lib/server/db/models/user.model';
 import { comparePassword } from '$lib/server/utils';
 
 export const load: PageServerLoad = async (event) => {
