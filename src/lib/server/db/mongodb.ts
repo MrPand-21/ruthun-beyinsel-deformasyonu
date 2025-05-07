@@ -53,3 +53,13 @@ export function getDatabaseName() {
     const dbName = MONGODB_URI.split('/').pop()?.split('?')[0];
     return dbName || 'app';
 }
+
+export interface UserDoc {
+    _id: string;
+}
+
+export interface SessionDoc {
+    _id: string;
+    expires_at: Date;
+    user_id: string;
+}

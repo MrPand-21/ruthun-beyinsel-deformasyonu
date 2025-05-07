@@ -2,13 +2,16 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { zod } from 'sveltekit-superforms/adapters';
 import { superValidate } from 'sveltekit-superforms/server';
+import { lucia } from '../../../lib/server/auth';
+import { generateId } from 'lucia';
+import { hash } from "@node-rs/argon2";
 
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
 import { UserService } from '$lib/server/models/user.model';
 
 export const load: PageServerLoad = async (event) => {
-    const session = await event.locals.auth();
+    const session = await event.locals.session;
 
     // If the user is already logged in, redirect to the homepage
     if (session) {
@@ -32,35 +35,36 @@ export const actions: Actions = {
 
         const { name, email, password } = form.data;
 
-        try {
-            const existingUser = await UserService.findByEmail(email);
-
-            if (existingUser) {
-                return fail(400, {
-                    form,
-                    error: 'Email already registered'
-                });
-            }
-
-            // Create new user
-            const user = await UserService.create({
-                name,
-                email,
-                password,
-                provider: 'credentials'
-            });
-
-            console.log('User registered successfully:', user._id);
-
-            redirect(303, '/login?registered=true');
-
-        } catch (error) {
-            console.error('Registration error:', error);
-
-            return fail(500, {
+        const existingUser = await UserService.findByEmail(email.toLowerCase());
+        if (existingUser) {
+            return fail(400, {
                 form,
-                error: 'An error occurred during registration'
+                message: 'Email already registered'
             });
         }
+
+        const passwordHash = await hash(password, {
+            memoryCost: 19456,
+            timeCost: 2,
+            outputLen: 32,
+            parallelism: 1
+        });
+
+        const user = await UserService.create({
+            username: name,
+            email: email.toLowerCase(),
+            password: passwordHash
+        });
+
+        console.log('User registered successfully:', user._id);
+
+        const session = await lucia.createSession(user._id.toString(), {});
+        const sessionCookie = lucia.createSessionCookie(session.id);
+        event.cookies.set(sessionCookie.name, sessionCookie.value, {
+            path: ".",
+            ...sessionCookie.attributes
+        });
+
+        redirect(302, "/");
     }
 };

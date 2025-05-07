@@ -13,6 +13,10 @@
 
 <main class="relative p-5 py-6 sm:px-8">
 	<div class="mx-auto my-12 grid max-w-5xl place-items-center">
-		<LoginForm data={data.form} />
+		<LoginForm
+			data={data.form}
+			source={data.source}
+			googleAuthURL={data.googleAuthURL}
+		/>
 	</div>
 </main>

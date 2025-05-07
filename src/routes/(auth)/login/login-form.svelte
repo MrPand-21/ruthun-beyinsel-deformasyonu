@@ -12,10 +12,9 @@
 	import Google from "$lib/components/icons/google.svelte";
 	import { CrInput } from "$lib/components/ui/input";
 	import CrButton from "$lib/components/ui/button/CrButton.svelte";
-	import { signIn } from "@auth/sveltekit/client";
 	import { goto } from "$app/navigation";
 
-	let { data: formProps } = $props();
+	let { data: formProps, source, googleAuthURL } = $props();
 
 	let isLoadingFormSubmit = $state(false);
 	let errorResponse: ErrorResponseType | null = $state(null);
@@ -52,6 +51,14 @@
 				errorResponse = { message: "Invalid credentials" };
 				return;
 			}
+
+			// Handle successful login
+			if (result.data.message) {
+				errorResponse = { message: result.data.message };
+				isLoadingFormSubmit = false;
+			} else {
+				goto(source || "/");
+			}
 		},
 	});
 
@@ -69,48 +76,12 @@
 	});
 
 	const handleGoogleSignIn = () => {
-		signIn("google");
-	};
-
-	const handleFormSubmit = async (event: Event) => {
-		event.preventDefault();
-		isLoadingFormSubmit = true;
-		errorResponse = null;
-
-		const email = $formData.email;
-		const password = $formData.password;
-
-		try {
-			const result = await signIn("credentials", {
-				email,
-				password,
-			});
-
-			// if (result?.url) {
-			// 	goto(result.url);
-			// 	return;
-			// } else if (result?.) {
-			// 	errorResponse = { message: "Invalid email or password" };
-			// } else {
-			// 	goto("/");
-			// }
-		} catch (e) {
-			errorResponse = getEmptyErrorResponse(
-				"Something went wrong. Please try again.",
-			);
-		} finally {
-			isLoadingFormSubmit = false;
-		}
+		window.location.href = googleAuthURL;
 	};
 </script>
 
 <div class="mt-4 grid min-w-[19rem] max-w-md gap-6">
-	<form
-		method="POST"
-		use:enhance
-		onsubmit={handleFormSubmit}
-		class="space-y-4"
-	>
+	<form method="POST" use:enhance class="space-y-4">
 		<input
 			type="hidden"
 			name="browserHash"
@@ -121,6 +92,7 @@
 			name="userAgent"
 			bind:value={$formData.userAgent}
 		/>
+		<input type="hidden" name="source" value={source || "/"} />
 
 		<CrInput
 			label="Email Address"
@@ -189,7 +161,7 @@
 	</div>
 
 	<button
-		onclick={handleGoogleSignIn}
+		on:click={handleGoogleSignIn}
 		class="flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
 	>
 		<Google class="h-5 w-5" />
