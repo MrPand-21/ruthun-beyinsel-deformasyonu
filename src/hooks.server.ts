@@ -1,8 +1,9 @@
-import { RefillingTokenBucket } from "$lib/server/rate-limit";
-import { validateSessionToken, setSessionTokenCookie, deleteSessionTokenCookie } from "$lib/server/session";
 import { sequence } from "@sveltejs/kit/hooks";
 
 import type { Handle } from "@sveltejs/kit";
+import { RefillingTokenBucket } from "$lib/server/utils/rate-limit";
+import { SessionService } from "$lib/server/db/models/session.model";
+import { initializeDatabase } from "$lib/server/db/mongodb";
 
 const bucket = new RefillingTokenBucket<string>(100, 1);
 
@@ -34,11 +35,12 @@ const authHandle: Handle = async ({ event, resolve }) => {
         return resolve(event);
     }
 
-    const { session, user } = validateSessionToken(token);
+
+    const { session, user } = await SessionService.validateToken(token)
     if (session !== null) {
-        setSessionTokenCookie(event, token, session.expiresAt);
+        SessionService.setCookie(event, token, session.expirationDate);
     } else {
-        deleteSessionTokenCookie(event);
+        SessionService.deleteCookie(event);
     }
 
     event.locals.session = session;
@@ -46,4 +48,15 @@ const authHandle: Handle = async ({ event, resolve }) => {
     return resolve(event);
 };
 
-export const handle = sequence(rateLimitHandle, authHandle);
+const dbInitHandle: Handle = async ({ event, resolve }) => {
+    try {
+        await initializeDatabase();
+        console.log("Database initialized successfully.");
+    } catch (error) {
+        console.error("Failed to initialize the database:", error);
+    }
+    return resolve(event);
+};
+
+// Combine all handles using `sequence`
+export const handle = sequence(dbInitHandle, rateLimitHandle, authHandle);

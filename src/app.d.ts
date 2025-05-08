@@ -4,8 +4,8 @@
 declare global {
   namespace App {
     interface Locals {
-      user: import("lucia").User | null;
-      session: import("lucia").Session | null;
+      user: Nullable<import("lucia").User>;
+      session: Nullable<import("lucia").Session>;
     }
     interface PageData {
       // Your page data types here
@@ -25,18 +25,6 @@ declare global {
   }
 
   function gtag(...args: any[]): void;
-}
-
-// Lucia type declarations
-declare namespace Lucia {
-  type Auth = import("./lib/server/auth").Auth;
-  type DatabaseUserAttributes = {
-    name: string;
-    email: string;
-    image?: string;
-    created_at?: Date;
-  };
-  type DatabaseSessionAttributes = {};
 }
 
 // Declare your environment variables

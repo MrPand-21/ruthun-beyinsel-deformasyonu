@@ -4,6 +4,9 @@ export interface ErrorResponseType {
   errors?: Record<string, string[]>;
 }
 
+export type Nullable<T> = T | null;
+
+
 export interface AnalyticsDto {
   browserHash: string;
   landingPage: string;
