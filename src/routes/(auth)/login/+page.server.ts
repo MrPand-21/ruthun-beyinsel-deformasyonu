@@ -1,65 +1,69 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { zod } from 'sveltekit-superforms/adapters';
 import { superValidate } from 'sveltekit-superforms/server';
-import { lucia } from '../../../lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
 import { UserService } from '$lib/server/db/models/user.model';
-import { comparePassword } from '$lib/server/utils';
+import { RefillingTokenBucket, Throttler } from '$lib/server/utils/rate-limit';
+import type { ObjectId } from 'mongodb';
+import { verifyPasswordHash } from '$lib/server/utils';
 
 export const load: PageServerLoad = async (event) => {
-	const session = await event.locals.session;
-
-	if (session) {
-		redirect(303, '/');
-	}
-
-	let source = event.url?.searchParams?.get("source") || event.url?.searchParams?.get("callbackUrl");
-	if (!source || source == "") {
-		source = "/";
+	if (event.locals.session !== null && event.locals.user !== null) {
+		if (!event.locals.user.emailVerified) {
+			return redirect(302, "/verify-email");
+		}
+		if (!event.locals.user.registered2FA) {
+			return redirect(302, "/2fa/setup");
+		}
+		if (!event.locals.session.twoFactorVerified) {
+			return redirect(302, "/2fa");
+		}
+		return redirect(302, "/");
 	}
 
 	return {
 		form: await superValidate(zod(formSchema)),
-		source: source,
 	};
 };
 
+const throttler = new Throttler<ObjectId>([0, 1, 2, 4, 8, 16, 30, 60, 180, 300]);
+const ipBucket = new RefillingTokenBucket<string>(20, 1);
+
+
 export const actions: Actions = {
 	default: async (event) => {
+
+		const clientIP = event.request.headers.get("X-Forwarded-For");
+		if (clientIP !== null && !ipBucket.check(clientIP, 1)) return fail(429, { message: "Too many requests", email: "" });
+
 		const form = await superValidate(event, zod(formSchema));
 
-		if (!form.valid) {
-			return fail(400, {
-				form,
-			});
-		}
+		if (!form.valid) return fail(400, { form });
 
 		const { email, password } = form.data;
 
 		const user = await UserService.findByEmail(email.toLowerCase());
-		if (!user) {
-			return fail(400, {
-				form,
-				message: "Invalid email or password"
-			});
-		}
-		const validPassword = comparePassword(user, password);
+		if (!user) return fail(400, { form, message: "Invalid email or password" });
+		if (clientIP !== null && !ipBucket.consume(clientIP, 1)) return fail(429, { message: "Too many requests", email: "" });
+		if (!throttler.consume(user._id)) return fail(429, { message: "Too many requests", email: "" });
 
-		if (!validPassword) {
-			return fail(400, {
-				form,
-				message: "Invalid email or password"
-			});
-		}
+		const validPassword = verifyPasswordHash UserService.getUserPasswordHash(user);
+
+	if(!validPassword) {
+		return fail(400, {
+			form,
+			message: "Invalid email or password"
+		});
+	}
 
 		const session = await lucia.createSession(user._id!.toString(), {});
-		const sessionCookie = lucia.createSessionCookie(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: ".",
-			...sessionCookie.attributes
-		});
+	const sessionCookie = lucia.createSessionCookie(session.id);
+	event.cookies.set(sessionCookie.name, sessionCookie.value, {
+		path: ".",
+		...sessionCookie.attributes
+	});
 
-		return redirect(302, "/");
-	}
+	return redirect(302, "/");
+}
 };
