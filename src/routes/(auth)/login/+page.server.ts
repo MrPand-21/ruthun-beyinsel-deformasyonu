@@ -3,10 +3,11 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { superValidate } from 'sveltekit-superforms/server';
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
-import { UserService } from '$lib/server/db/models/user.model';
 import { RefillingTokenBucket, Throttler } from '$lib/server/utils/rate-limit';
 import type { ObjectId } from 'mongodb';
 import { verifyPasswordHash } from '$lib/server/utils';
+import { UserService } from '$lib/server/db/models/user.model';
+import { SessionService } from '$lib/server/db/models/session.model';
 
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.session !== null && event.locals.user !== null) {
@@ -43,27 +44,22 @@ export const actions: Actions = {
 
 		const { email, password } = form.data;
 
+
 		const user = await UserService.findByEmail(email.toLowerCase());
 		if (!user) return fail(400, { form, message: "Invalid email or password" });
 		if (clientIP !== null && !ipBucket.consume(clientIP, 1)) return fail(429, { message: "Too many requests", email: "" });
 		if (!throttler.consume(user._id)) return fail(429, { message: "Too many requests", email: "" });
 
-		const validPassword = verifyPasswordHash UserService.getUserPasswordHash(user);
+		const validPassword = verifyPasswordHash(await UserService.getUserPasswordHash(user._id) as string, password);
 
-	if(!validPassword) {
-		return fail(400, {
-			form,
-			message: "Invalid email or password"
+		if (!validPassword) return fail(400, { form, message: "Invalid email or password" });
+
+		const session = await SessionService.create(user._id!.toString(), {});
+		const sessionCookie = SessionService.generateSessionToken(session.id);
+		event.cookies.set(sessionCookie.name, sessionCookie.value, {
+			path: ".",
+			...sessionCookie.attributes
 		});
+		return redirect(302, "/");
 	}
-
-		const session = await lucia.createSession(user._id!.toString(), {});
-	const sessionCookie = lucia.createSessionCookie(session.id);
-	event.cookies.set(sessionCookie.name, sessionCookie.value, {
-		path: ".",
-		...sessionCookie.attributes
-	});
-
-	return redirect(302, "/");
-}
 };
