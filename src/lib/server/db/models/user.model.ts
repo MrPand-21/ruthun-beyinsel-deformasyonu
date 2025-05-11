@@ -40,6 +40,7 @@ export const UserService = {
         }
 
         userData.recoveryCode = encryptString(generateRandomRecoveryCode());
+        console.log("Recovery codev2: ", decryptToString(userData.recoveryCode));
         userData.emailVerified = false;
         userData.totpKey = null;
 

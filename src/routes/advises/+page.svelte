@@ -1,10 +1,7 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import { fly, fade } from "svelte/transition";
     import Seo from "$lib/components/SEO.svelte";
     import { Icons } from "$lib/components/icons";
-    import AppBackground from "$lib/components/AppBackground.svelte";
-
     // Categories for the guides
     const categories = [
         {
@@ -122,8 +119,6 @@
     description="Explore guides and advice for students on applications, academics, and career planning"
     keywords="student advice, application tips, academic guidance, career planning, college preparation"
 />
-
-<AppBackground />
 
 <main class="relative mx-auto max-w-7xl px-5 pb-40 sm:px-8">
     <!-- Hero Section -->

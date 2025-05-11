@@ -39,7 +39,6 @@
 
 <div class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
     <form method="POST" use:enhance class="flex flex-col lg:flex-row gap-8">
-        <!-- Left Column - Heading and Submit Button -->
         <div
             class="lg:basis-2/5 lg:sticky lg:top-24 lg:self-start rounded-2xl
             bg-gradient-to-br from-indigo-800 to-indigo-950 text-white p-8 shadow-xl"
@@ -94,12 +93,10 @@
             </div>
         </div>
 
-        <!-- Right Column - Form Fields -->
         <div class="flex-1 space-y-8">
             <div
                 class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8 space-y-6 border border-gray-200/50 dark:border-gray-700/50"
             >
-                <!-- Personal Information -->
                 <div class="space-y-4">
                     <h2 class="text-xl font-semibold flex items-center">
                         <Icons.userPlus
@@ -142,7 +139,6 @@
                     </div>
                 </div>
 
-                <!-- Academic Information -->
                 <div
                     class="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700"
                 >
@@ -202,7 +198,6 @@
                     </div>
                 </div>
 
-                <!-- Experience Details -->
                 <div
                     class="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700"
                 >

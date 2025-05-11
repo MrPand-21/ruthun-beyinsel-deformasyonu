@@ -110,7 +110,7 @@ export const EmailVerificationService = {
     },
 
     getUserEmailVerificationRequestFromRequest: async (event: RequestEvent): Promise<Nullable<EmailVerificationRequest>> => {
-        if (!event.locals.user) {
+        if (!event?.locals?.user || event?.locals?.user?._id) {
             return null;
         }
         const id = event.cookies.get("email_verification") ?? null;

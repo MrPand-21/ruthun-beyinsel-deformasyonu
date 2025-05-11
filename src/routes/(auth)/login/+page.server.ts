@@ -7,16 +7,16 @@ import { RefillingTokenBucket, Throttler } from '$lib/server/utils/rate-limit';
 import type { ObjectId } from 'mongodb';
 import { verifyPasswordHash } from '$lib/server/utils';
 import { UserService } from '$lib/server/db/models/user.model';
-import { SessionService } from '$lib/server/db/models/session.model';
+import { SessionService, type SessionFlags } from '$lib/server/db/models/session.model';
 
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.session !== null && event.locals.user !== null) {
 		if (!event.locals.user.emailVerified) {
 			return redirect(302, "/verify-email");
 		}
-		if (!event.locals.user.registered2FA) {
-			return redirect(302, "/2fa/setup");
-		}
+		// if (!event.locals.user.registered2FA) {
+		// 	return redirect(302, "/2fa/setup");
+		// }
 		if (!event.locals.session.twoFactorVerified) {
 			return redirect(302, "/2fa");
 		}
@@ -54,12 +54,20 @@ export const actions: Actions = {
 
 		if (!validPassword) return fail(400, { form, message: "Invalid email or password" });
 
-		const session = await SessionService.create(user._id!.toString(), {});
-		const sessionCookie = SessionService.generateSessionToken(session.id);
-		event.cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: ".",
-			...sessionCookie.attributes
-		});
-		return redirect(302, "/");
+		throttler.reset(user._id);
+		const sessionFlags: SessionFlags = {
+			twoFactorVerified: false
+		};
+		const sessionToken = SessionService.generateSessionToken();
+		const session = await SessionService.create(sessionToken, user._id, sessionFlags);
+		SessionService.setCookie(event, sessionToken, session.expirationDate);
+
+		if (!user.emailVerified) {
+			return redirect(302, "/verify-email");
+		}
+		// if (!user.registered2FA) {
+		// 	return redirect(302, "/2fa/setup");
+		// }
+		return redirect(302, "/2fa");
 	}
 };

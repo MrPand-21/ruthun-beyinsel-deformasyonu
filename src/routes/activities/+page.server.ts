@@ -1,12 +1,11 @@
-// src/routes/activities/+page.server.ts
 import type { PageServerLoad } from './$types';
 import { ActivityService } from '$lib/server/db/models/activity.model';
 import { error, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async (event) => {
-    const session = await event.locals.auth();
+    const session = await event.locals.session;
 
-    if (!session || !session.user) {
+    if (!session) {
         redirect(303, '/login?callbackUrl=/activities');
     }
 

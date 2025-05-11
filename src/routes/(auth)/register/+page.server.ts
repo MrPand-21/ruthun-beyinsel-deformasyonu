@@ -2,21 +2,30 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { zod } from 'sveltekit-superforms/adapters';
 import { superValidate } from 'sveltekit-superforms/server';
-import { lucia } from '../../../lib/server/auth';
-import { generateId } from 'lucia';
-import { hash } from "@node-rs/argon2";
-
 import type { Actions, PageServerLoad } from './$types';
 import { formSchema } from './schema';
 import { UserService } from '$lib/server/db/models/user.model';
-import { hashPassword } from '$lib/server/utils';
+import { hashPassword, verifyPasswordStrength } from '$lib/server/utils';
+import { RefillingTokenBucket } from '$lib/server/utils/rate-limit';
+import { EmailVerificationService } from '$lib/server/db/models/email.verification.model';
+import { SessionService, type SessionFlags } from '$lib/server/db/models/session.model';
 
-export const load: PageServerLoad = async (event) => {
-    const session = await event.locals.session;
+const ipBucket = new RefillingTokenBucket<string>(3, 10);
+
+export const load = async (event) => {
 
     // If the user is already logged in, redirect to the homepage
-    if (session) {
-        redirect(303, '/');
+    if (event.locals.session || event.locals.user) {
+        if (!event.locals.user.emailVerified) {
+            return redirect(302, "/verify-email");
+        }
+        // if (!event.locals.user.registered2FA) {
+        //     return redirect(302, "/2fa/setup");
+        // }
+        if (!event.locals.session.twoFactorVerified) {
+            return redirect(302, "/2fa");
+        }
+        return redirect(302, "/");
     }
 
     return {
@@ -26,6 +35,17 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
     default: async (event) => {
+
+        // TODO: Assumes X-Forwarded-For is always included.
+        const clientIP = event.request.headers.get("X-Forwarded-For");
+        if (clientIP !== null && !ipBucket.check(clientIP, 1)) {
+            return fail(429, {
+                message: "Too many requests",
+                email: "",
+                username: ""
+            });
+        }
+
         const form = await superValidate(event, zod(formSchema));
 
         if (!form.valid) {
@@ -36,29 +56,33 @@ export const actions: Actions = {
 
         const { name, email, password } = form.data;
 
-        const existingUser = await UserService.findByEmail(email.toLowerCase());
-        if (existingUser) {
-            return fail(400, {
-                form,
-                message: 'Email already registered'
-            });
-        }
+        console.log('Received registration data:', { name, email, password });
+
+        const strongPassword = await verifyPasswordStrength(password);
+        if (!strongPassword) return fail(400, { message: "Weak password", email });
+        if (clientIP !== null && !ipBucket.consume(clientIP, 1)) return fail(429, { message: "Too many requests", email, name });
 
         const user = await UserService.create({
             username: name,
             email: email.toLowerCase(),
-            password: await hashPassword(password),
+            passwordHash: await hashPassword(password),
+            emailVerified: false,
+            totpKey: null
         });
 
         console.log('User registered successfully:', user._id);
 
-        const session = await lucia.createSession(user._id.toString(), {});
-        const sessionCookie = lucia.createSessionCookie(session.id);
-        event.cookies.set(sessionCookie.name, sessionCookie.value, {
-            path: ".",
-            ...sessionCookie.attributes
-        });
 
-        redirect(302, "/");
+        const emailVerificationRequest = await EmailVerificationService.createEmailVerificationRequest(user._id, email.toLowerCase());
+        EmailVerificationService.sendVerificationEmail(emailVerificationRequest.email, emailVerificationRequest.code);
+        EmailVerificationService.setEmailVerificationRequestCookie(event, emailVerificationRequest);
+
+        const sessionFlags: SessionFlags = {
+            twoFactorVerified: false
+        };
+        const sessionToken = SessionService.generateSessionToken();
+        const session = await SessionService.create(sessionToken, user._id, sessionFlags);
+        SessionService.setCookie(event, sessionToken, session.expirationDate);
+        // throw redirect(302, "/verify-email");
     }
 };

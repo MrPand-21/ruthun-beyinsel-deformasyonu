@@ -1,9 +1,7 @@
 <script lang="ts">
-    import AppBackground from "$lib/components/AppBackground.svelte";
     import Seo from "$lib/components/SEO.svelte";
+    import ComponentCard from "$lib/components/ui/ComponentCard.svelte";
 
-    // You can add any additional logic or data fetching here if needed
-    //MOCK Courses data
     const courses = [
         {
             id: 1,
@@ -28,9 +26,18 @@
     keywords="courses, high school, education, student activities"
 />
 
-<AppBackground />
-
 <main class="relative mx-auto max-w-5xl px-5 pb-40 sm:px-8">
-    <h1 class="text-3xl font-bold text-center mt-10">Available Courses</h1>
-    <!-- <CourseList courses={courses} /> -->
+    <ComponentCard
+        title="Courses"
+        desc="Explore various courses available for high school students."
+        className="mt-10"
+    >
+        {#each courses as course}
+            <div>
+                <h2>{course.title}</h2>
+                <p>{course.description}</p>
+                <img src={course.image} alt={course.title} />
+            </div>
+        {/each}
+    </ComponentCard>
 </main>

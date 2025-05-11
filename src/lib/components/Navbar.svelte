@@ -6,10 +6,9 @@
     import { page } from "$app/stores";
     import { enhance } from "$app/forms";
 
+    const { user } = $props();
+
     let mobileMenuOpen = $state(false);
-
-    let user = $derived($page.data.user);
-
     function toggleMobileMenu() {
         mobileMenuOpen = !mobileMenuOpen;
     }

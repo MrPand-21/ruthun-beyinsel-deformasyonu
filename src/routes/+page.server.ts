@@ -1,7 +1,7 @@
 export const load = async (event) => {
-    const session = await event.locals.session;
+    const user = event.locals.user;
 
     return {
-        session
+        user: user ? user.username : null
     };
 };

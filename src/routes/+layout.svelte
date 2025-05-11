@@ -2,21 +2,23 @@
 	import { ModeWatcher } from "mode-watcher";
 	import "../app.css";
 	import Analytics from "$lib/components/Analytics.svelte";
-	import AppBackground from "$lib/components/AppBackground.svelte";
 	import Navbar from "$lib/components/Navbar.svelte";
 	import Footer from "$lib/components/Footer.svelte";
+
+	const { data, children } = $props();
+	const user = {
+		name: data.username,
+		email: data.email,
+	};
 </script>
 
 <Analytics />
 
 <ModeWatcher />
 
-<AppBackground />
-
 <div class="">
-	<Navbar />
-
-	<slot />
+	<Navbar {user} />
+	{@render children()}
 </div>
 
 <Footer />
