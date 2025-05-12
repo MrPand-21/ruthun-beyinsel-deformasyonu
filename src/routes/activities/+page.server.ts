@@ -5,7 +5,7 @@ import { superValidate } from 'sveltekit-superforms/server';
 import { zod } from 'sveltekit-superforms/adapters';
 import { formSchema } from './schema';
 
-export const load: PageServerLoad = async (event) => {
+export const load = async (event) => {
     const session = await event.locals.session;
 
     if (!session) {
@@ -23,6 +23,9 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
     default: async (event) => {
+
+        console.log('Received form submission:', event.request.body);
+
         const form = await superValidate(event, zod(formSchema));
 
         if (!form.valid) {
@@ -47,10 +50,10 @@ export const actions: Actions = {
             title,
             description,
             location,
-            startDate,
-            endDate,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
             category,
-            tags: [],
+            tags: tags || [],
             userId: ''
         });
 

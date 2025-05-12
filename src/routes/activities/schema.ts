@@ -1,4 +1,3 @@
-import { start } from "repl";
 import { z } from "zod";
 
 export const formSchema = z.object({
@@ -8,39 +7,38 @@ export const formSchema = z.object({
         .max(50, {
             message: "Max 50 characters",
         })
-        .min(1, "Required"),
-    location: z
+    , location: z
         .string()
         .max(50, {
             message: "Max 50 characters",
         })
         .optional(),
     startDate: z
-        .string()
-        .refine((date) => {
-            const parsedDate = new Date(date);
-            return !isNaN(parsedDate.getTime());
-        }, "Invalid date format")
-        .transform((date) => new Date(date)),
+        .string(),
+    // .refine((date) => {
+    //     const parsedDate = new Date(date);
+    //     return !isNaN(parsedDate.getTime());
+    // }, "Invalid date format")
+    // .transform((date) => new Date(date)),
     endDate: z
-        .string()
-        .refine((date) => {
-            const parsedDate = new Date(date);
-            return !isNaN(parsedDate.getTime());
-        }, "Invalid date format")
-        .transform((date) => new Date(date))
-        .refine((date) => {
-            // TODO: Uncomment this when startDate is available
-            // const startDate = ctx.parent.startDate;
-            // if (startDate && date < startDate) {
-            //     ctx.addIssue({
-            //         code: z.ZodIssueCode.custom,
-            //         message: "End date must be after start date",
-            //     });
-            //     return false;
-            // }
-            return true;
-        }),
+        .string(),
+    // .refine((date) => {
+    //     const parsedDate = new Date(date);
+    //     return !isNaN(parsedDate.getTime());
+    // }, "Invalid date format")
+    // .transform((date) => new Date(date))
+    // .refine((date) => {
+    // TODO: Uncomment this when startDate is available
+    // const startDate = ctx.parent.startDate;
+    // if (startDate && date < startDate) {
+    //     ctx.addIssue({
+    //         code: z.ZodIssueCode.custom,
+    //         message: "End date must be after start date",
+    //     });
+    //     return false;
+    // }
+    //     return true;
+    // }),
     category: z.enum([
         "internship",
         "course",

@@ -16,15 +16,10 @@
 		ActivityDocument,
 	} from "$lib/server/db/models/activity.model.js";
 	import { superForm } from "sveltekit-superforms/client";
+	import { zodClient } from "sveltekit-superforms/adapters";
+	import { formSchema } from "./schema";
 
-	let {
-		data,
-	}: {
-		data: {
-			activities: Activity[];
-			form: any;
-		};
-	} = $props();
+	let { data } = $props();
 
 	let activities = $state<Activity[]>(data.activities);
 	let isAddingActivity = $state(false);
@@ -44,24 +39,22 @@
 		tags: "",
 	});
 
-    const formData= superForm({form:data.form}, {
-        dataType: "json",
-        taintedMessage: false, // Disable unsaved changes warning
-        resetForm: true,
-        onResult: ({ result }) => {
-            if (result.type === 'success') {
-                successMessage = "Activity created successfully!";
-                setTimeout(() => {
-                    successMessage = "";
-                    isAddingActivity = false;
-                }, 1200);
-            }
-        }
-    });
-
+	const formData = superForm(data.form, {
+		taintedMessage: false, // Disable unsaved changes warning
+		resetForm: true,
+		validators: zodClient(formSchema),
+		onResult: ({ result }) => {
+			if (result.type === "success") {
+				successMessage = "Activity created successfully!";
+				setTimeout(() => {
+					successMessage = "";
+					isAddingActivity = false;
+				}, 1200);
+			}
+		},
+	});
 
 	const { form, enhance, errors, reset } = formData;
-
 
 	$effect(() => {
 		if (dateRange.from) {
@@ -74,7 +67,6 @@
 
 	let successMessage = $state("");
 
-	// Categories for the theme dropdown
 	const categories = [
 		{ value: "internship", label: "Internship" },
 		{ value: "course", label: "Course" },
@@ -83,7 +75,6 @@
 		{ value: "other", label: "Other" },
 	];
 
-	// Selected category value
 	let categoryValue = $state<string>("other");
 	const selectedCategoryLabel = $derived(
 		categoryValue
@@ -91,7 +82,6 @@
 			: "Select a category",
 	);
 
-	// Update newActivity.category when categoryValue changes
 	$effect(() => {
 		newActivity.category = categoryValue as any;
 	});
@@ -138,16 +128,12 @@
 		<div class="bg-white rounded-lg shadow-md p-6 mb-8">
 			<h2 class="text-xl font-semibold mb-4">Add New Summer Activity</h2>
 
-			<form onsubmit={handleSubmit} method="post" class="space-y-4">
-				{#if $errors.}
-					<div
-						class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-						role="alert"
-					>
-						<span class="block sm:inline">{errors["general"]}</span>
-					</div>
-				{/if}
-
+			<form
+				onsubmit={handleSubmit}
+				use:enhance
+				method="post"
+				class="space-y-4"
+			>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<!-- Title -->
 					<div>
@@ -159,18 +145,18 @@
 						<input
 							type="text"
 							id="title"
-							bind:value={newActivity.title}
+							name="title"
+							bind:value={$form.title}
 							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 							placeholder="Summer internship at Google"
 						/>
-						{#if errors["title"]}
+						{#if $errors.title}
 							<p class="mt-1 text-sm text-red-600">
-								{errors["title"]}
+								{$errors.title}
 							</p>
 						{/if}
 					</div>
 
-					<!-- Location -->
 					<div>
 						<label
 							for="location"
@@ -180,7 +166,8 @@
 						<input
 							type="text"
 							id="location"
-							bind:value={newActivity.location}
+							name="location"
+							bind:value={$form.location}
 							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 							placeholder="Mountain View, CA"
 						/>
@@ -189,6 +176,7 @@
 					<!-- Category Select -->
 					<div>
 						<label
+							for="category"
 							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
 							>Category *</label
 						>
@@ -403,9 +391,9 @@
 							</DateRangePicker.Calendar>
 						</DateRangePicker.Content>
 					</DateRangePicker.Root>
-					{#if errors["startDate"] || errors["endDate"]}
+					{#if $errors.startDate || $errors.endDate}
 						<p class="mt-1 text-sm text-red-600">
-							{errors["startDate"] || errors["endDate"]}
+							{$errors.startDate || $errors.endDate}
 						</p>
 					{/if}
 				</div>
@@ -419,14 +407,15 @@
 					>
 					<textarea
 						id="description"
-						bind:value={newActivity.description}
+						name="description"
+						bind:value={$form.description}
 						rows="4"
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						placeholder="Describe your summer activity..."
 					></textarea>
-					{#if errors["description"]}
+					{#if $errors.description}
 						<p class="mt-1 text-sm text-red-600">
-							{errors["description"]}
+							{$errors.description}
 						</p>
 					{/if}
 				</div>

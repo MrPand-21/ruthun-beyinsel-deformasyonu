@@ -41,7 +41,7 @@ export const ActivityService = {
         const collection = await getCollection<ActivityDocument>(DB_NAME, COLLECTION);
         const activities = await collection.find({}).sort({ createdAt: -1 }).toArray();
 
-        const formattedActivities: Activity[] = activities.map(({ _id, ...rest }) => {
+        const formattedActivities: Activity[] = activities.map(({ _id, userId, ...rest }) => {
             return {
                 ...rest,
                 id: _id.toString(),
@@ -66,7 +66,7 @@ export const ActivityService = {
         const collection = await getCollection(DB_NAME, COLLECTION);
 
         const userId = typeof activityData.userId === 'string'
-            ? new ObjectId(activityData.userId)
+            ? new ObjectId("680782dd9ff1467f8cf70754")
             : activityData.userId;
 
         const now = new Date();
