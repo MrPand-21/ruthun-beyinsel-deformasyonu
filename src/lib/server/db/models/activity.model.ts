@@ -15,6 +15,17 @@ export interface ActivityDocument {
     updatedAt: Date;
 }
 
+export interface Activity {
+    id: string;
+    title: string;
+    description: string;
+    location?: string;
+    startDate: Date;
+    endDate: Date;
+    category: 'internship' | 'course' | 'travel' | 'volunteering' | 'other';
+    tags: string[];
+}
+
 const COLLECTION = 'activities';
 
 const DB_NAME = getDatabaseName();
@@ -26,9 +37,18 @@ export const ActivityService = {
             userId: new ObjectId(userId)
         }).sort({ createdAt: -1 }).toArray() as Promise<ActivityDocument[]>;
     },
-    findAll: async () => {
-        const collection = await getCollection(DB_NAME, COLLECTION);
-        return collection.find({}).sort({ createdAt: -1 }).toArray() as Promise<ActivityDocument[]>;
+    findAll: async (): Promise<Activity[]> => {
+        const collection = await getCollection<ActivityDocument>(DB_NAME, COLLECTION);
+        const activities = await collection.find({}).sort({ createdAt: -1 }).toArray();
+
+        const formattedActivities: Activity[] = activities.map(({ _id, ...rest }) => {
+            return {
+                ...rest,
+                id: _id.toString(),
+            };
+        });
+
+        return formattedActivities;
     },
 
     findById: async (id: string, userId?: string) => {

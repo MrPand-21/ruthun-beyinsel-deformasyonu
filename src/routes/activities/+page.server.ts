@@ -1,6 +1,9 @@
 import type { PageServerLoad } from './$types';
 import { ActivityService } from '$lib/server/db/models/activity.model';
-import { redirect } from '@sveltejs/kit';
+import { fail, redirect, type Actions } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms/server';
+import { zod } from 'sveltekit-superforms/adapters';
+import { formSchema } from './schema';
 
 export const load: PageServerLoad = async (event) => {
     const session = await event.locals.session;
@@ -11,17 +14,49 @@ export const load: PageServerLoad = async (event) => {
 
     const activities = await ActivityService.findAll();
 
-    const formattedActivities = activities.map(activity => ({
-        ...activity,
-        id: activity._id!.toString(),
-        startDate: activity.startDate.toISOString().split('T')[0],
-        endDate: activity.endDate.toISOString().split('T')[0],
-        createdAt: activity.createdAt.toISOString(),
-        updatedAt: activity.updatedAt.toISOString()
-    }));
-
     return {
-        activities: formattedActivities
+        activities,
+        form: await superValidate(zod(formSchema))
     };
 
+};
+
+export const actions: Actions = {
+    default: async (event) => {
+        const form = await superValidate(event, zod(formSchema));
+
+        if (!form.valid) {
+            return fail(400, {
+                form
+            });
+        }
+
+        const { title,
+            description,
+            location,
+            startDate,
+            endDate,
+            category,
+            tags
+        } = form.data;
+
+        console.log('Received registration data:', { title, description, location, startDate, endDate, category, tags });
+
+
+        const activity = await ActivityService.create({
+            title,
+            description,
+            location,
+            startDate,
+            endDate,
+            category,
+            tags: [],
+            userId: ''
+        });
+
+        console.log('Activity registered successfully:', activity._id);
+
+
+
+    }
 };

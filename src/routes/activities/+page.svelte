@@ -11,31 +11,24 @@
 	import CaretUpDown from "phosphor-svelte/lib/CaretUpDown";
 	import CaretDoubleUp from "phosphor-svelte/lib/CaretDoubleUp";
 	import CaretDoubleDown from "phosphor-svelte/lib/CaretDoubleDown";
+	import type {
+		Activity,
+		ActivityDocument,
+	} from "$lib/server/db/models/activity.model.js";
+	import { superForm } from "sveltekit-superforms/client";
 
-	interface Activity {
-		id: string;
-		title?: string;
-		description?: string;
-		location?: string;
-		startDate: string;
-		endDate: string;
-		category?:
-			| "internship"
-			| "course"
-			| "travel"
-			| "volunteering"
-			| "other";
-		tags?: string[];
-		createdAt: string;
-		updatedAt: string;
-	}
+	let {
+		data,
+	}: {
+		data: {
+			activities: Activity[];
+			form: any;
+		};
+	} = $props();
 
-	let { data } = $props();
-
-	let activities = $state<Activity[]>(data.activities || []);
+	let activities = $state<Activity[]>(data.activities);
 	let isAddingActivity = $state(false);
 
-	// Date range for activity using the correct DateRange type from bits-ui
 	let dateRange = $state({
 		from: new Date(),
 		to: new Date(),
@@ -51,7 +44,25 @@
 		tags: "",
 	});
 
-	// Update start and end dates when dateRange changes
+    const formData= superForm({form:data.form}, {
+        dataType: "json",
+        taintedMessage: false, // Disable unsaved changes warning
+        resetForm: true,
+        onResult: ({ result }) => {
+            if (result.type === 'success') {
+                successMessage = "Activity created successfully!";
+                setTimeout(() => {
+                    successMessage = "";
+                    isAddingActivity = false;
+                }, 1200);
+            }
+        }
+    });
+
+
+	const { form, enhance, errors, reset } = formData;
+
+
 	$effect(() => {
 		if (dateRange.from) {
 			newActivity.startDate = dateRange.from.toISOString().split("T")[0];
@@ -61,7 +72,6 @@
 		}
 	});
 
-	let errors: { [key: string]: string } = $state({});
 	let successMessage = $state("");
 
 	// Categories for the theme dropdown
@@ -86,87 +96,8 @@
 		newActivity.category = categoryValue as any;
 	});
 
-	// Handle form submission
 	async function handleSubmit() {
-		// Reset errors
-		errors = {};
-
-		// Basic validation
-		if (!newActivity.title) errors.title = "Title is required";
-		if (!newActivity.description)
-			errors.description = "Description is required";
-		if (!newActivity.startDate) errors.startDate = "Start date is required";
-		if (!newActivity.endDate) errors.endDate = "End date is required";
-
-		// Check if there are any errors
-		if (Object.keys(errors).length > 0) return;
-
-		try {
-			// Convert tags string to array
-			const tagsArray = newActivity.tags
-				? newActivity.tags
-						.split(",")
-						.map((tag) => tag.trim())
-						.filter(Boolean)
-				: [];
-
-			// Prepare activity data
-			const activityData = {
-				...newActivity,
-				tags: tagsArray,
-			};
-
-			// Send POST request
-			const response = await fetch("/api/activities", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(activityData),
-			});
-
-			const result = await response.json();
-
-			if (!response.ok) {
-				throw new Error(result.message || "Failed to create activity");
-			}
-
-			// Add the new activity to the list
-			activities = [
-				{
-					...result.activity,
-					id: result.activity._id,
-				},
-				...activities,
-			];
-
-			// Reset form
-			newActivity = {
-				title: "",
-				description: "",
-				location: "",
-				startDate: new Date().toISOString().split("T")[0],
-				endDate: new Date().toISOString().split("T")[0],
-				category: "other",
-				tags: "",
-			};
-
-			// Reset date range
-			dateRange = {
-				from: new Date(),
-				to: new Date(),
-			};
-
-			// Show success message
-			successMessage = "Activity created successfully!";
-			setTimeout(() => {
-				successMessage = "";
-				isAddingActivity = false;
-			}, 3000);
-		} catch (error: any) {
-			console.error("Error creating activity:", error);
-			errors["general"] = error.message || "Failed to create activity";
-		}
+		console.log("Submitting form...");
 	}
 </script>
 
@@ -178,7 +109,7 @@
 
 <div class="container mx-auto px-4 py-8">
 	<div class="flex items-center justify-between mb-8">
-		<h1 class="text-3xl font-bold">My Summer Activities</h1>
+		<h1 class="text-3xl font-bold">Summer Activities</h1>
 
 		<button
 			onclick={() => (isAddingActivity = !isAddingActivity)}
@@ -207,8 +138,8 @@
 		<div class="bg-white rounded-lg shadow-md p-6 mb-8">
 			<h2 class="text-xl font-semibold mb-4">Add New Summer Activity</h2>
 
-			<form onsubmit={handleSubmit} class="space-y-4">
-				{#if errors["general"]}
+			<form onsubmit={handleSubmit} method="post" class="space-y-4">
+				{#if $errors.}
 					<div
 						class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
 						role="alert"
@@ -554,7 +485,7 @@
 							</span>
 
 							<a
-								href={`/activities/${activity.id}`}
+								href={`/activities/${activity.id}/edit`}
 								class="text-gray-500 hover:text-gray-700"
 							>
 								<Icons.edit class="w-5 h-5" />
