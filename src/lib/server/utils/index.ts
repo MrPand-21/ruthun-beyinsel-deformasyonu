@@ -1,7 +1,6 @@
-import { hash, verify } from "@node-rs/argon2";
 import { sha1 } from "@oslojs/crypto/sha1";
 import { encodeBase32UpperCaseNoPadding, encodeHexLowerCase } from "@oslojs/encoding";
-import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { createCipheriv, createDecipheriv, randomBytes, pbkdf2 } from "crypto";
 
 
 // TODO: ENV
@@ -59,21 +58,42 @@ export function generateRandomRecoveryCode(): string {
     return recoveryCode;
 }
 
-export async function verifyPasswordHash(hash: string, candidatePassword: string): Promise<boolean> {
-    return await verify(hash, candidatePassword, {
-        memoryCost: 19456,
-        timeCost: 2,
-        outputLen: 32,
-        parallelism: 1
+export async function verifyPasswordHash(storedHash: string, candidatePassword: string): Promise<boolean> {
+    // Split the stored hash into components (format: iterations:salt:hash)
+    const parts = storedHash.split(':');
+    if (parts.length !== 3) {
+        return false;
+    }
+
+    const iterations = parseInt(parts[0], 10);
+    const salt = parts[1];
+    const hash = parts[2];
+
+    return new Promise((resolve, reject) => {
+        pbkdf2(candidatePassword, salt, iterations, 64, 'sha512', (err, derivedKey) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(derivedKey.toString('hex') === hash);
+        });
     });
 }
 
 export const hashPassword = async function (password: string): Promise<string> {
-    return await hash(password, {
-        memoryCost: 19456,
-        timeCost: 2,
-        outputLen: 32,
-        parallelism: 1
+    // Generate a random salt
+    const salt = randomBytes(16).toString('hex');
+    const iterations = 10000; // Recommended minimum for PBKDF2
+
+    return new Promise((resolve, reject) => {
+        pbkdf2(password, salt, iterations, 64, 'sha512', (err, derivedKey) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            // Format: iterations:salt:hash
+            resolve(`${iterations}:${salt}:${derivedKey.toString('hex')}`);
+        });
     });
 };
 
