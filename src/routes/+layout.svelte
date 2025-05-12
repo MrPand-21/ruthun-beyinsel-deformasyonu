@@ -5,10 +5,22 @@
 	import Navbar from "$lib/components/Navbar.svelte";
 	import Footer from "$lib/components/Footer.svelte";
 
-	const { data, children } = $props();
-	const user = {
-		name: data.username,
-		email: data.email,
+	const {
+		data,
+		children,
+	}: {
+		data: {
+			user: {
+				username: string;
+				email: string;
+			};
+		} | null;
+		children: () => any;
+	} = $props();
+
+	const user = data?.user && {
+		name: data.user.username,
+		email: data.user.email,
 	};
 </script>
 

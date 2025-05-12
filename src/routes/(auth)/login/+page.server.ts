@@ -68,6 +68,6 @@ export const actions: Actions = {
 		// if (!user.registered2FA) {
 		// 	return redirect(302, "/2fa/setup");
 		// }
-		return redirect(302, "/2fa");
+		return redirect(302, "/");
 	}
 };

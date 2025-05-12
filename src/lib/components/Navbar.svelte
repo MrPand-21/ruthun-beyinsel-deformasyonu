@@ -4,6 +4,8 @@
     import { quintOut } from "svelte/easing";
     import { Icons } from "./icons";
     import { page } from "$app/stores";
+
+    // @ts-ignore - Workaround for TypeScript error with $app/forms
     import { enhance } from "$app/forms";
 
     const { user } = $props();
@@ -19,36 +21,36 @@
     }
 </script>
 
-<nav class="w-full py-6 px-6">
+<nav class="w-full py-4 px-6">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
         <a
             href="/"
-            class="flex items-center justify-center p-3 rounded-lg border-2 border-indigo-500/30 hover:border-indigo-500
+            class="flex items-center justify-center p-2 rounded-lg border-2 border-indigo-500/30 hover:border-indigo-500
             shadow-sm hover:shadow-md transition-all duration-300 transform"
         >
             <Icons.home class="h-5 w-5" />
         </a>
 
-        <div class="hidden md:flex items-center space-x-6">
+        <div class="flex gap-4">
             <a
                 href="/activities"
-                class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-purple-500/30
-                hover:border-purple-500
-                transition-all duration-300 transform"
+                class="  text-[0.9rem] font-medium border
+            hover:border-b-purple-500 border-transparent
+            transition-all duration-300 transform"
             >
-                <Icons.star class="h-5 w-5" />
                 <span>Activities</span>
             </a>
             <a
                 href="/advises"
-                class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-sky-500/30
-                hover:border-sky-500
-                transition-all duration-300 transform"
+                class="
+            text-[0.9rem] font-medium border
+            hover:border-b-purple-500 border-transparent
+            transition-all duration-300 transform"
             >
-                <Icons.chat class="h-5 w-5" />
                 <span>Advises</span>
             </a>
-
+        </div>
+        <div class="flex items-center gap-2">
             {#if user}
                 <div class="flex items-center space-x-4">
                     {#if user.image}
@@ -64,15 +66,15 @@
                             {(user.name || "U").charAt(0).toUpperCase()}
                         </div>
                     {/if}
-                    <form action="/logout" method="POST" use:enhance>
+                    <form action="/sign-out" method="POST" use:enhance>
                         <button
                             type="submit"
-                            class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-red-500/30
+                            class="flex items-center p-2 rounded-lg border-2 border-red-500/30
                             hover:border-red-500
                             transition-all duration-300 transform"
                         >
                             <Icons.logOut class="h-5 w-5" />
-                            <span>Sign Out</span>
+                            <span class="sr-only">Sign Out</span>
                         </button>
                     </form>
                 </div>
@@ -102,6 +104,7 @@
             <ThemeToggle />
         </div>
 
+        <!-- Mobile Menu Buttons -->
         <div class="md:hidden flex items-center space-x-4">
             <a
                 href="/activities"
@@ -206,12 +209,12 @@
                             >
                         </div>
 
-                        <form action="/logout" method="POST" use:enhance>
+                        <form action="/sign-out" method="POST" use:enhance>
                             <button
                                 type="submit"
                                 class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/20
                                 text-red-600 dark:text-red-400 transition-colors"
-                                onclick={() => (mobileMenuOpen = false)}
+                                onclick={handleSignOut}
                                 transition:scale={{ duration: 200, delay: 200 }}
                             >
                                 <Icons.logOut class="h-6 w-6" />

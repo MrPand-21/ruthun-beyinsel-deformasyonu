@@ -120,10 +120,10 @@
 
 				<CrInput
 					label="Full Name"
-					name="name"
-					bind:value={$formData.name}
+					name="username"
+					bind:value={$formData.username}
 					placeholder="John Doe"
-					error={$errors.name}
+					error={$errors.username}
 					required
 				/>
 

@@ -54,16 +54,16 @@ export const actions: Actions = {
             });
         }
 
-        const { name, email, password } = form.data;
+        const { username, email, password } = form.data;
 
-        console.log('Received registration data:', { name, email, password });
+        console.log('Received registration data:', { username, email, password });
 
         const strongPassword = await verifyPasswordStrength(password);
         if (!strongPassword) return fail(400, { message: "Weak password", email });
         if (clientIP !== null && !ipBucket.consume(clientIP, 1)) return fail(429, { message: "Too many requests", email, name });
 
         const user = await UserService.create({
-            username: name,
+            username: username,
             email: email.toLowerCase(),
             passwordHash: await hashPassword(password),
             emailVerified: false,

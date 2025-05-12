@@ -8,7 +8,7 @@
 
     const entered = writable(0);
 
-    onMount(() => {
+    onMount(async () => {
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -26,7 +26,7 @@
             },
         );
 
-        document.querySelectorAll("section").forEach((section) => {
+        document.querySelectorAll("section")?.forEach((section) => {
             observer.observe(section);
         });
     });

@@ -14,7 +14,7 @@
 	import CrButton from "$lib/components/ui/button/CrButton.svelte";
 	import { goto } from "$app/navigation";
 
-	let { data: formProps, source } = $props();
+	let { data: formProps } = $props();
 
 	let isLoadingFormSubmit = $state(false);
 	let errorResponse: ErrorResponseType | null = $state(null);
@@ -57,7 +57,7 @@
 				errorResponse = { message: result.data.message };
 				isLoadingFormSubmit = false;
 			} else {
-				goto(source || "/");
+				goto("/");
 			}
 		},
 	});
@@ -88,7 +88,6 @@
 			name="userAgent"
 			bind:value={$formData.userAgent}
 		/>
-		<input type="hidden" name="source" value={source || "/"} />
 
 		<CrInput
 			label="Email Address"

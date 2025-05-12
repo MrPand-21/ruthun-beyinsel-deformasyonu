@@ -45,6 +45,7 @@ const authHandle: Handle = async ({ event, resolve }) => {
 
     event.locals.session = session;
     event.locals.user = user;
+    console.log("User:", user);
     return resolve(event);
 };
 
@@ -58,5 +59,4 @@ const dbInitHandle: Handle = async ({ event, resolve }) => {
     return resolve(event);
 };
 
-// Combine all handles using `sequence`
 export const handle = sequence(dbInitHandle, rateLimitHandle, authHandle);

@@ -1,9 +1,10 @@
 <script lang="ts">
-    import { onMount, onDestroy } from "svelte";
+    import type { Nullable } from "$lib/types";
+    import { onMount } from "svelte";
 
     const { isOpen, onClose, className, children } = $props();
 
-    let dropdownRef: HTMLDivElement;
+    let dropdownRef: Nullable<HTMLDivElement> = $state(null);
 
     function handleClickOutside(event: MouseEvent) {
         if (
@@ -17,10 +18,9 @@
 
     onMount(() => {
         document.addEventListener("mousedown", handleClickOutside);
-    });
-
-    onDestroy(() => {
-        document.removeEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
     });
 </script>
 

@@ -66,6 +66,9 @@ export async function initializeDatabase() {
     await sessionsCollection.createIndex({ userId: 1 });
     await sessionsCollection.createIndex({ expirationDate: 1 }, { expireAfterSeconds: 0 });
 
+    const activitiesCollection = await getCollection<Document>(dbName, 'activities');
+    await activitiesCollection.createIndex({ userId: 1 });
+
     const emailVerificationRequestsCollection = await getCollection<EmailVerificationRequestDocument>(dbName, 'email_verification_requests');
     await emailVerificationRequestsCollection.createIndex({ userId: 1 });
     await emailVerificationRequestsCollection.createIndex({ expirationDate: 1 }, { expireAfterSeconds: 0 });
@@ -73,7 +76,4 @@ export async function initializeDatabase() {
     const passwordResetSessionsCollection = await getCollection<PasswordResetSessionDocument>(dbName, 'password_reset_sessions');
     await passwordResetSessionsCollection.createIndex({ userId: 1 });
     await passwordResetSessionsCollection.createIndex({ expirationDate: 1 }, { expireAfterSeconds: 0 }); // TTL index for automatic expiration
-
-
-    console.log('Database initialized with required indexes.');
 }

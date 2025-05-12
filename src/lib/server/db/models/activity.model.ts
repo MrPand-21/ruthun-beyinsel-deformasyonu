@@ -26,6 +26,10 @@ export const ActivityService = {
             userId: new ObjectId(userId)
         }).sort({ createdAt: -1 }).toArray() as Promise<ActivityDocument[]>;
     },
+    findAll: async () => {
+        const collection = await getCollection(DB_NAME, COLLECTION);
+        return collection.find({}).sort({ createdAt: -1 }).toArray() as Promise<ActivityDocument[]>;
+    },
 
     findById: async (id: string, userId?: string) => {
         const collection = await getCollection(DB_NAME, COLLECTION);
