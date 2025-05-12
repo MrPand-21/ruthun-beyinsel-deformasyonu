@@ -27,6 +27,7 @@ export const actions: Actions = {
 
 async function action(event: RequestEvent) {
 
+    console.log("Sign out action called");
     if (event.locals.session === null) {
         return fail(401, {
             message: "Not authenticated"

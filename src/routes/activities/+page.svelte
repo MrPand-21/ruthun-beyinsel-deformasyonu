@@ -1,6 +1,16 @@
 <script lang="ts">
 	import Seo from "$lib/components/SEO.svelte";
 	import { Icons } from "$lib/components/icons";
+	import ComponentCard from "$lib/components/ui/ComponentCard.svelte";
+	import { DateRangePicker, type DateRange, Select } from "bits-ui";
+	import CalendarBlank from "phosphor-svelte/lib/CalendarBlank";
+	import CaretLeft from "phosphor-svelte/lib/CaretLeft";
+	import CaretRight from "phosphor-svelte/lib/CaretRight";
+	import Check from "phosphor-svelte/lib/Check";
+	import Palette from "phosphor-svelte/lib/Palette";
+	import CaretUpDown from "phosphor-svelte/lib/CaretUpDown";
+	import CaretDoubleUp from "phosphor-svelte/lib/CaretDoubleUp";
+	import CaretDoubleDown from "phosphor-svelte/lib/CaretDoubleDown";
 
 	interface Activity {
 		id: string;
@@ -25,6 +35,12 @@
 	let activities = $state<Activity[]>(data.activities || []);
 	let isAddingActivity = $state(false);
 
+	// Date range for activity using the correct DateRange type from bits-ui
+	let dateRange = $state({
+		from: new Date(),
+		to: new Date(),
+	});
+
 	let newActivity = $state({
 		title: "",
 		description: "",
@@ -35,16 +51,40 @@
 		tags: "",
 	});
 
+	// Update start and end dates when dateRange changes
+	$effect(() => {
+		if (dateRange.from) {
+			newActivity.startDate = dateRange.from.toISOString().split("T")[0];
+		}
+		if (dateRange.to) {
+			newActivity.endDate = dateRange.to.toISOString().split("T")[0];
+		}
+	});
+
 	let errors: { [key: string]: string } = $state({});
 	let successMessage = $state("");
 
+	// Categories for the theme dropdown
 	const categories = [
-		{ value: "internship", label: "Internship", icon: "briefcase" },
-		{ value: "course", label: "Course", icon: "book" },
-		{ value: "travel", label: "Travel", icon: "plane" },
-		{ value: "volunteering", label: "Volunteering", icon: "heart" },
-		{ value: "other", label: "Other", icon: "star" },
+		{ value: "internship", label: "Internship" },
+		{ value: "course", label: "Course" },
+		{ value: "travel", label: "Travel" },
+		{ value: "volunteering", label: "Volunteering" },
+		{ value: "other", label: "Other" },
 	];
+
+	// Selected category value
+	let categoryValue = $state<string>("other");
+	const selectedCategoryLabel = $derived(
+		categoryValue
+			? categories.find((cat) => cat.value === categoryValue)?.label
+			: "Select a category",
+	);
+
+	// Update newActivity.category when categoryValue changes
+	$effect(() => {
+		newActivity.category = categoryValue as any;
+	});
 
 	// Handle form submission
 	async function handleSubmit() {
@@ -111,6 +151,12 @@
 				tags: "",
 			};
 
+			// Reset date range
+			dateRange = {
+				from: new Date(),
+				to: new Date(),
+			};
+
 			// Show success message
 			successMessage = "Activity created successfully!";
 			setTimeout(() => {
@@ -122,16 +168,10 @@
 			errors["general"] = error.message || "Failed to create activity";
 		}
 	}
-
-	// Get icon component based on category
-	function getCategoryIcon(category: any) {
-		const foundCategory = categories.find((c) => c.value === category);
-		return foundCategory ? foundCategory.icon : "star";
-	}
 </script>
 
 <Seo
-	title="My Summer Activities"
+	title="Suggested Activities"
 	description="Manage your summer activities"
 	keywords="summer activities, internships, courses, travels"
 />
@@ -215,24 +255,70 @@
 						/>
 					</div>
 
-					<!-- Category -->
+					<!-- Category Select -->
 					<div>
 						<label
-							for="category"
-							class="block text-sm font-medium text-gray-700 mb-1"
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
 							>Category *</label
 						>
-						<select
-							id="category"
-							bind:value={newActivity.category}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						<Select.Root
+							type="single"
+							onValueChange={(v) => (categoryValue = v)}
+							items={categories}
+							value={categoryValue}
 						>
-							{#each categories as category}
-								<option value={category.value}
-									>{category.label}</option
+							<Select.Trigger
+								class="h-input rounded-9px border-border-input bg-background data-placeholder:text-foreground-alt/50 inline-flex w-full select-none items-center border px-[11px] text-sm transition-colors"
+								aria-label="Select a category"
+							>
+								<Palette
+									class="text-muted-foreground mr-[9px] size-6"
+								/>
+								{selectedCategoryLabel}
+								<CaretUpDown
+									class="text-muted-foreground ml-auto size-6"
+								/>
+							</Select.Trigger>
+							<Select.Portal>
+								<Select.Content
+									class="focus-override border-muted bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 outline-hidden z-50 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] min-w-[var(--bits-select-anchor-width)] select-none rounded-xl border px-1 py-3 data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
+									sideOffset={10}
 								>
-							{/each}
-						</select>
+									<Select.ScrollUpButton
+										class="flex w-full items-center justify-center"
+									>
+										<CaretDoubleUp class="size-3" />
+									</Select.ScrollUpButton>
+									<Select.Viewport class="p-1">
+										{#each categories as category, i (i + category.value)}
+											<Select.Item
+												class="rounded-button data-highlighted:bg-muted outline-hidden data-disabled:opacity-50 flex h-10 w-full select-none items-center py-3 pl-5 pr-1.5 text-sm capitalize"
+												value={category.value}
+												label={category.label}
+											>
+												{#snippet children({
+													selected,
+												})}
+													{category.label}
+													{#if selected}
+														<div class="ml-auto">
+															<Check
+																aria-label="check"
+															/>
+														</div>
+													{/if}
+												{/snippet}
+											</Select.Item>
+										{/each}
+									</Select.Viewport>
+									<Select.ScrollDownButton
+										class="flex w-full items-center justify-center"
+									>
+										<CaretDoubleDown class="size-3" />
+									</Select.ScrollDownButton>
+								</Select.Content>
+							</Select.Portal>
+						</Select.Root>
 					</div>
 
 					<!-- Tags -->
@@ -250,46 +336,147 @@
 							placeholder="tech, coding, silicon valley"
 						/>
 					</div>
+				</div>
 
-					<!-- Start Date -->
-					<div>
-						<label
-							for="startDate"
-							class="block text-sm font-medium text-gray-700 mb-1"
-							>Start Date *</label
+				<div>
+					<DateRangePicker.Root
+						bind:value={dateRange}
+						weekdayFormat="short"
+						fixedWeeks={true}
+						class="flex w-full flex-col gap-1.5"
+					>
+						<DateRangePicker.Label
+							class="block select-none text-sm font-medium text-gray-700"
+							>Activity Period *</DateRangePicker.Label
 						>
-						<input
-							type="date"
-							id="startDate"
-							bind:value={newActivity.startDate}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						/>
-						{#if errors["startDate"]}
-							<p class="mt-1 text-sm text-red-600">
-								{errors["startDate"]}
-							</p>
-						{/if}
-					</div>
+						<div
+							class="h-input rounded-input border-border-input bg-background text-foreground focus-within:border-border-input-hover focus-within:shadow-date-field-focus hover:border-border-input-hover flex w-full select-none items-center border px-2 py-3 text-sm tracking-[0.01em]"
+						>
+							{#each ["start", "end"] as const as type}
+								<DateRangePicker.Input {type}>
+									{#snippet children({ segments })}
+										{#each segments as { part, value }}
+											<div
+												class="inline-block select-none"
+											>
+												{#if part === "literal"}
+													<DateRangePicker.Segment
+														{part}
+														class="text-muted-foreground p-1"
+													>
+														{value}
+													</DateRangePicker.Segment>
+												{:else}
+													<DateRangePicker.Segment
+														{part}
+														class="rounded-5px hover:bg-muted focus:bg-muted focus:text-foreground aria-[valuetext=Empty]:text-muted-foreground focus-visible:ring-0! focus-visible:ring-offset-0! px-1 py-1"
+													>
+														{value}
+													</DateRangePicker.Segment>
+												{/if}
+											</div>
+										{/each}
+									{/snippet}
+								</DateRangePicker.Input>
+								{#if type === "start"}
+									<div
+										aria-hidden="true"
+										class="text-muted-foreground px-1"
+									>
+										–⁠⁠⁠⁠⁠
+									</div>
+								{/if}
+							{/each}
 
-					<!-- End Date -->
-					<div>
-						<label
-							for="endDate"
-							class="block text-sm font-medium text-gray-700 mb-1"
-							>End Date *</label
-						>
-						<input
-							type="date"
-							id="endDate"
-							bind:value={newActivity.endDate}
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						/>
-						{#if errors["endDate"]}
-							<p class="mt-1 text-sm text-red-600">
-								{errors["endDate"]}
-							</p>
-						{/if}
-					</div>
+							<DateRangePicker.Trigger
+								class="text-foreground/60 hover:bg-muted active:bg-dark-10 ml-auto inline-flex size-8 items-center justify-center rounded-[5px] transition-all"
+							>
+								<CalendarBlank class="size-6" />
+							</DateRangePicker.Trigger>
+						</div>
+						<DateRangePicker.Content sideOffset={6} class="z-50">
+							<DateRangePicker.Calendar
+								class="rounded-15px border-dark-10 bg-background-alt shadow-popover mt-6 border p-[22px]"
+							>
+								{#snippet children({ months, weekdays })}
+									<DateRangePicker.Header
+										class="flex items-center justify-between"
+									>
+										<DateRangePicker.PrevButton
+											class="rounded-9px bg-background-alt hover:bg-muted inline-flex size-10 items-center justify-center transition-all active:scale-[0.98]"
+										>
+											<CaretLeft class="size-6" />
+										</DateRangePicker.PrevButton>
+										<DateRangePicker.Heading
+											class="text-[15px] font-medium"
+										/>
+										<DateRangePicker.NextButton
+											class="rounded-9px bg-background-alt hover:bg-muted inline-flex size-10 items-center justify-center transition-all active:scale-[0.98]"
+										>
+											<CaretRight class="size-6" />
+										</DateRangePicker.NextButton>
+									</DateRangePicker.Header>
+									<div
+										class="flex flex-col space-y-4 pt-4 sm:flex-row sm:space-x-4 sm:space-y-0"
+									>
+										{#each months as month}
+											<DateRangePicker.Grid
+												class="w-full border-collapse select-none space-y-1"
+											>
+												<DateRangePicker.GridHead>
+													<DateRangePicker.GridRow
+														class="mb-1 flex w-full justify-between"
+													>
+														{#each weekdays as day}
+															<DateRangePicker.HeadCell
+																class="text-muted-foreground font-normal! w-10 rounded-md text-xs"
+															>
+																<div>
+																	{day.slice(
+																		0,
+																		2,
+																	)}
+																</div>
+															</DateRangePicker.HeadCell>
+														{/each}
+													</DateRangePicker.GridRow>
+												</DateRangePicker.GridHead>
+												<DateRangePicker.GridBody>
+													{#each month.weeks as weekDates}
+														<DateRangePicker.GridRow
+															class="flex w-full"
+														>
+															{#each weekDates as date}
+																<DateRangePicker.Cell
+																	{date}
+																	month={month.value}
+																	class="p-0! relative m-0 size-10 overflow-visible text-center text-sm focus-within:relative focus-within:z-20"
+																>
+																	<DateRangePicker.Day
+																		class={"rounded-9px text-foreground hover:border-foreground focus-visible:ring-foreground! data-selection-end:rounded-9px data-selection-start:rounded-9px data-highlighted:bg-muted data-selected:bg-muted data-selection-end:bg-foreground data-selection-start:bg-foreground data-disabled:text-foreground/30 data-selected:text-foreground data-selection-end:text-background data-selection-start:text-background data-unavailable:text-muted-foreground data-selected:[&:not([data-selection-start])]:[&:not([data-selection-end])]:focus-visible:border-foreground data-disabled:pointer-events-none data-outside-month:pointer-events-none  data-highlighted:rounded-none data-selected:font-medium data-selection-end:font-medium data-selection-start:font-medium data-unavailable:line-through data-selection-start:focus-visible:ring-2 data-selection-start:focus-visible:ring-offset-2! data-selected:[&:not([data-selection-start])]:[&:not([data-selection-end])]:rounded-none data-selected:[&:not([data-selection-start])]:[&:not([data-selection-end])]:focus-visible:ring-0! data-selected:[&:not([data-selection-start])]:[&:not([data-selection-end])]:focus-visible:ring-offset-0! group relative inline-flex size-10 items-center justify-center overflow-visible whitespace-nowrap border border-transparent bg-transparent p-0 text-sm font-normal transition-all"}
+																	>
+																		<div
+																			class="bg-foreground group-data-selected:bg-background group-data-today:block absolute top-[5px] hidden size-1 rounded-full transition-all"
+																		></div>
+																		{date.day}
+																	</DateRangePicker.Day>
+																</DateRangePicker.Cell>
+															{/each}
+														</DateRangePicker.GridRow>
+													{/each}
+												</DateRangePicker.GridBody>
+											</DateRangePicker.Grid>
+										{/each}
+									</div>
+								{/snippet}
+							</DateRangePicker.Calendar>
+						</DateRangePicker.Content>
+					</DateRangePicker.Root>
+					{#if errors["startDate"] || errors["endDate"]}
+						<p class="mt-1 text-sm text-red-600">
+							{errors["startDate"] || errors["endDate"]}
+						</p>
+					{/if}
 				</div>
 
 				<!-- Description -->
@@ -327,7 +514,7 @@
 
 	<!-- Activities List -->
 	{#if activities.length === 0}
-		<div class="bg-white rounded-lg shadow-md p-8 text-center">
+		<ComponentCard>
 			<div class="flex justify-center mb-4">
 				<Icons.calendar class="w-16 h-16 text-gray-400" />
 			</div>
@@ -338,7 +525,7 @@
 				Click the "Add Activity" button to create your first summer
 				activity.
 			</p>
-		</div>
+		</ComponentCard>
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 			{#each activities as activity}

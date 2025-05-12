@@ -3,20 +3,27 @@
     import { fly, scale } from "svelte/transition";
     import { quintOut } from "svelte/easing";
     import { Icons } from "./icons";
-    import { page } from "$app/stores";
 
     // @ts-ignore - Workaround for TypeScript error with $app/forms
     import { enhance } from "$app/forms";
+    import { Avatar, DropdownMenu } from "bits-ui";
+    import GearSix from "phosphor-svelte/lib/GearSix";
+    import UserCircle from "phosphor-svelte/lib/UserCircle";
+    import Bell from "phosphor-svelte/lib/Bell";
+    import Check from "phosphor-svelte/lib/Check";
 
     const { user } = $props();
 
     let mobileMenuOpen = $state(false);
+    let notifications = $state(false);
+
     function toggleMobileMenu() {
         mobileMenuOpen = !mobileMenuOpen;
     }
 
     function handleSignOut() {
         mobileMenuOpen = false;
+        alert("Sign out clicked");
         // The form will handle the submission
     }
 </script>
@@ -52,32 +59,140 @@
         </div>
         <div class="flex items-center gap-2">
             {#if user}
-                <div class="flex items-center space-x-4">
-                    {#if user.image}
-                        <img
-                            src={user.image}
-                            alt={user.name || "User"}
-                            class="h-8 w-8 rounded-full border-2 border-gray-200"
-                        />
-                    {:else}
-                        <div
-                            class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
+                <DropdownMenu.Root>
+                    <DropdownMenu.Trigger
+                        class="border-input hover:border-input-hover inline-flex select-none items-center justify-center rounded-full border shadow-btn active:scale-[0.98]"
+                    >
+                        {#if user.image}
+                            <Avatar.Root
+                                class="relative flex size-8 shrink-0 overflow-hidden rounded-full border"
+                            >
+                                <Avatar.Image
+                                    src={user.image}
+                                    alt={user.name || "User"}
+                                    class="aspect-square h-full w-full"
+                                />
+                                <Avatar.Fallback
+                                    class="bg-muted text-xxs flex h-full w-full items-center justify-center rounded-full"
+                                    >{(user.name || "U")
+                                        .charAt(0)
+                                        .toUpperCase()}</Avatar.Fallback
+                                >
+                            </Avatar.Root>
+                        {:else}
+                            <Avatar.Root
+                                class="relative flex size-8 shrink-0 overflow-hidden rounded-full border"
+                            >
+                                <Avatar.Fallback
+                                    class="bg-blue-500 flex h-full w-full items-center justify-center rounded-full text-white"
+                                    >{(user.name || "U")
+                                        .charAt(0)
+                                        .toUpperCase()}</Avatar.Fallback
+                                >
+                            </Avatar.Root>
+                        {/if}
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Portal>
+                        <DropdownMenu.Content
+                            class="border-muted bg-background shadow-popover outline-hidden focus-visible:outline-hidden w-[229px] rounded-xl border px-1 py-1.5"
+                            sideOffset={8}
                         >
-                            {(user.name || "U").charAt(0).toUpperCase()}
-                        </div>
-                    {/if}
-                    <form action="/sign-out" method="POST" use:enhance>
-                        <button
-                            type="submit"
-                            class="flex items-center p-2 rounded-lg border-2 border-red-500/30
-                            hover:border-red-500
-                            transition-all duration-300 transform"
-                        >
-                            <Icons.logOut class="h-5 w-5" />
-                            <span class="sr-only">Sign Out</span>
-                        </button>
-                    </form>
-                </div>
+                            <DropdownMenu.Item
+                                class="rounded-button data-highlighted:bg-muted ring-0! ring-transparent! flex h-10 select-none items-center py-3 pl-3 pr-1.5 text-sm font-medium focus-visible:outline-none"
+                            >
+                                <div class="flex items-center">
+                                    <UserCircle
+                                        class="text-foreground-alt mr-2 size-5"
+                                    />
+                                    Profile
+                                </div>
+                                <div class="ml-auto flex items-center gap-px">
+                                    <kbd
+                                        class="rounded-button border-dark-10 bg-background-alt text-muted-foreground shadow-kbd inline-flex size-5 items-center justify-center border text-xs"
+                                    >
+                                        ⌘
+                                    </kbd>
+                                    <kbd
+                                        class="rounded-button border-dark-10 bg-background-alt text-muted-foreground shadow-kbd inline-flex size-5 items-center justify-center border text-[10px]"
+                                    >
+                                        P
+                                    </kbd>
+                                </div>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item
+                                class="rounded-button data-highlighted:bg-muted ring-0! ring-transparent! flex h-10 select-none items-center py-3 pl-3 pr-1.5 text-sm font-medium focus-visible:outline-none"
+                            >
+                                <div class="flex items-center">
+                                    <GearSix
+                                        class="text-foreground-alt mr-2 size-5"
+                                    />
+                                    Settings
+                                </div>
+                                <div class="ml-auto flex items-center gap-px">
+                                    <kbd
+                                        class="rounded-button border-dark-10 bg-background-alt text-muted-foreground shadow-kbd inline-flex size-5 items-center justify-center border text-xs"
+                                    >
+                                        ⌘
+                                    </kbd>
+                                    <kbd
+                                        class="rounded-button border-dark-10 bg-background-alt text-muted-foreground shadow-kbd inline-flex size-5 items-center justify-center border text-[10px]"
+                                    >
+                                        S
+                                    </kbd>
+                                </div>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.CheckboxItem
+                                bind:checked={notifications}
+                                class="rounded-button data-highlighted:bg-muted ring-0! ring-transparent! flex h-10 select-none items-center py-3 pl-3 pr-1.5 text-sm font-medium focus-visible:outline-none"
+                            >
+                                {#snippet children({ checked })}
+                                    <div class="flex items-center pr-4">
+                                        <Bell
+                                            class="text-foreground-alt mr-2 size-5"
+                                        />
+                                        Notifications
+                                    </div>
+                                    <div
+                                        class="ml-auto flex items-center gap-px"
+                                    >
+                                        {#if checked}
+                                            <Check class="size-4" />
+                                        {/if}
+                                    </div>
+                                {/snippet}
+                            </DropdownMenu.CheckboxItem>
+                            <DropdownMenu.Separator
+                                class="bg-border-card my-1 h-px"
+                            />
+                            <DropdownMenu.Item
+                                onSelect={(e) => {
+                                    e.preventDefault();
+                                }}
+                                class="rounded-button hover:cursor-pointer
+                                data-highlighted:bg-muted ring-0!
+                                ring-transparent! flex h-10 select-none
+                                items-center py-3 pl-3 pr-1.5 text-sm
+                                font-medium focus-visible:outline-none
+                                text-red-600 dark:text-red-400"
+                            >
+                                <form
+                                    action="/sign-out"
+                                    method="POST"
+                                    class="hover:cursor-pointer"
+                                    use:enhance
+                                >
+                                    <button
+                                        type="submit"
+                                        class="w-full flex items-center"
+                                    >
+                                        <Icons.logOut class="mr-2 size-5" />
+                                        Sign Out
+                                    </button>
+                                </form>
+                            </DropdownMenu.Item>
+                        </DropdownMenu.Content>
+                    </DropdownMenu.Portal>
+                </DropdownMenu.Root>
             {:else}
                 <div class="flex items-center space-x-3">
                     <a

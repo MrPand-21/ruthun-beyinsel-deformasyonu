@@ -1,7 +1,5 @@
 <script lang="ts">
-    export let title: string;
-    export let className = "";
-    export let desc = "";
+    const { title = "", className = "", desc = "", children } = $$props;
 </script>
 
 <div
@@ -20,7 +18,9 @@
 
     <div class="p-4 border-t border-gray-100 dark:border-gray-800 sm:p-6">
         <div class="space-y-6">
-            <slot></slot>
+            {#if children}
+                {children}
+            {/if}
         </div>
     </div>
 </div>
