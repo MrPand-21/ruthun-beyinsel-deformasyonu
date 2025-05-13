@@ -4,6 +4,9 @@ import type { UserDocument } from './models/user.model';
 import type { SessionDocument } from './models/session.model';
 import type { EmailVerificationRequestDocument } from './models/email.verification.model';
 import type { PasswordResetSessionDocument } from './models/password.reset.session.model';
+import type { ActivityDocument } from './models/activity.model';
+import type { MajorDocument } from './models/major.model';
+import type { RequirementDocument } from './models/requirement.model';
 
 declare global {
     var mongoClient: {
@@ -66,8 +69,17 @@ export async function initializeDatabase() {
     await sessionsCollection.createIndex({ userId: 1 });
     await sessionsCollection.createIndex({ expirationDate: 1 }, { expireAfterSeconds: 0 });
 
-    const activitiesCollection = await getCollection<Document>(dbName, 'activities');
+    const activitiesCollection = await getCollection<ActivityDocument>(dbName, 'activities');
     await activitiesCollection.createIndex({ userId: 1 });
+    await activitiesCollection.createIndex({ category: 1 });
+    await activitiesCollection.createIndex({ "major._id": 1 });
+    await activitiesCollection.createIndex({ tags: 1 });
+
+    const majorsCollection = await getCollection<MajorDocument>(dbName, 'majors');
+    await majorsCollection.createIndex({ title: 1 }, { unique: true });
+
+    const requirementsCollection = await getCollection<RequirementDocument>(dbName, 'requirements');
+    await requirementsCollection.createIndex({ title: 1 }, { unique: true });
 
     const emailVerificationRequestsCollection = await getCollection<EmailVerificationRequestDocument>(dbName, 'email_verification_requests');
     await emailVerificationRequestsCollection.createIndex({ userId: 1 });

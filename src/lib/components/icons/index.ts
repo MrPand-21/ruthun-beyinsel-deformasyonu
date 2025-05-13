@@ -41,7 +41,11 @@ import {
 	Trash,
 	User,
 	Users,
-	ArrowLeft
+	ArrowLeft,
+	GraduationCap,
+	DollarSign,
+	ExternalLink,
+	Check
 } from 'lucide-svelte';
 import Google from './google.svelte';
 
@@ -53,6 +57,10 @@ export const Icons = {
 	// Navigation & UI
 	home: Home,
 	menu: Menu,
+	check: Check,
+	dollarSign: DollarSign,
+	externalLink: ExternalLink,
+	graduationCap: GraduationCap,
 	x: X,
 	arrowLeft: ArrowLeft,
 	arrowRight: ArrowRight,

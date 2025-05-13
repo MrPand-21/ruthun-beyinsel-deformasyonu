@@ -1,41 +1,59 @@
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <script lang="ts">
 	import Seo from "$lib/components/SEO.svelte";
 	import { Icons } from "$lib/components/icons";
 	import ComponentCard from "$lib/components/ui/ComponentCard.svelte";
-	import { DateRangePicker, type DateRange, Select } from "bits-ui";
-	import CalendarBlank from "phosphor-svelte/lib/CalendarBlank";
-	import CaretLeft from "phosphor-svelte/lib/CaretLeft";
-	import CaretRight from "phosphor-svelte/lib/CaretRight";
-	import Check from "phosphor-svelte/lib/Check";
+	import { Select, Combobox } from "bits-ui";
 	import Palette from "phosphor-svelte/lib/Palette";
 	import CaretUpDown from "phosphor-svelte/lib/CaretUpDown";
 	import CaretDoubleUp from "phosphor-svelte/lib/CaretDoubleUp";
 	import CaretDoubleDown from "phosphor-svelte/lib/CaretDoubleDown";
+	import Check from "phosphor-svelte/lib/Check";
 	import type {
 		Activity,
 		ActivityDocument,
 	} from "$lib/server/db/models/activity.model.js";
+	import type { Major } from "$lib/server/db/models/major.model.js";
+	import type { Requirement } from "$lib/server/db/models/requirement.model.js";
 	import { superForm } from "sveltekit-superforms/client";
 	import { zodClient } from "sveltekit-superforms/adapters";
 	import { formSchema } from "./schema";
+	import { PieChart } from "lucide-svelte";
+	import { cubicOut } from "svelte/easing";
 
 	let { data } = $props();
 
 	let activities = $state<Activity[]>(data.activities);
+	let majors = $state<Major[]>(data.majors || []);
+	let requirements = $state<Requirement[]>(data.requirements || []);
 	let isAddingActivity = $state(false);
 
-	let dateRange = $state({
-		from: new Date(),
-		to: new Date(),
-	});
+	let searchValue = $state("");
+
+	// New major form state
+	let newMajorName = $state("");
+	let showAddMajorForm = $state(false);
+
+	// Requirement combobox state
+	let requirementSearch = $state("");
+	let filteredRequirements = $derived(
+		requirements.filter((req) =>
+			req.title.toLowerCase().includes(requirementSearch.toLowerCase()),
+		),
+	);
 
 	let newActivity = $state({
 		title: "",
 		description: "",
 		location: "",
-		startDate: new Date().toISOString().split("T")[0],
-		endDate: new Date().toISOString().split("T")[0],
+		duration: "1 week",
 		category: "other",
+		major: undefined,
+		requirements: [],
+		cost: undefined,
+		recommended: undefined,
+		goodForWho: "",
+		link: "",
 		tags: "",
 	});
 
@@ -55,15 +73,6 @@
 	});
 
 	const { form, enhance, errors, reset } = formData;
-
-	$effect(() => {
-		if (dateRange.from) {
-			newActivity.startDate = dateRange.from.toISOString().split("T")[0];
-		}
-		if (dateRange.to) {
-			newActivity.endDate = dateRange.to.toISOString().split("T")[0];
-		}
-	});
 
 	let successMessage = $state("");
 
@@ -86,9 +95,135 @@
 		newActivity.category = categoryValue as any;
 	});
 
+	// Major selection state
+	let majorSearch = $state("");
+	let majorValue = $state<string | undefined>(undefined);
+	let filteredMajors = $derived(
+		majorSearch.trim()
+			? majors.filter((m) =>
+					m.title.toLowerCase().includes(majorSearch.toLowerCase()),
+				)
+			: majors,
+	);
+
+	$effect(() => {
+		if (majorValue) {
+			const selectedMajor = majors.find((m) => m.id === majorValue);
+			if (selectedMajor) {
+				$form.major = {
+					_id: selectedMajor.id,
+					title: selectedMajor.title,
+				};
+			}
+		} else {
+			$form.major = undefined;
+		}
+	});
+
+	async function addNewMajor() {
+		if (!majorSearch.trim()) return;
+
+		try {
+			const response = await fetch("/api/majors", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ title: majorSearch.trim() }),
+			});
+
+			if (response.ok) {
+				const newMajor = await response.json();
+				majors = [...majors, newMajor];
+				majorValue = newMajor.id;
+				majorSearch = newMajor.title;
+			} else {
+				throw new Error("Failed to add major");
+			}
+		} catch (error) {
+			console.error("Error adding new major:", error);
+			alert("Failed to add new major. Please try again.");
+		}
+	}
+
+	// Requirements combobox selection
+	let selectedRequirements = $state<string[]>([]);
+
+	$effect(() => {
+		$form.requirements = selectedRequirements
+			.map((reqId) => {
+				const req = requirements.find((r) => r.id === reqId);
+				return req ? { _id: req.id, title: req.title } : null;
+			})
+			.filter((req) => req !== null);
+	});
+
 	async function handleSubmit() {
 		console.log("Submitting form...");
 	}
+
+	function toggleRequirement(reqId: string) {
+		if (selectedRequirements.includes(reqId)) {
+			selectedRequirements = selectedRequirements.filter(
+				(id) => id !== reqId,
+			);
+		} else {
+			selectedRequirements = [...selectedRequirements, reqId];
+		}
+	}
+
+	async function addNewRequirement() {
+		if (!requirementSearch.trim()) return;
+
+		try {
+			const response = await fetch("/api/requirements", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ title: requirementSearch.trim() }),
+			});
+
+			if (response.ok) {
+				const newRequirement = await response.json();
+				requirements = [...requirements, newRequirement];
+				selectedRequirements = [
+					...selectedRequirements,
+					newRequirement.id,
+				];
+				requirementSearch = "";
+			} else {
+				throw new Error("Failed to add requirement");
+			}
+		} catch (error) {
+			console.error("Error adding new requirement:", error);
+			alert("Failed to add new requirement. Please try again.");
+		}
+	}
+
+	function autoScrollDelay(tick: number) {
+		const maxDelay = 200;
+		const minDelay = 25;
+		const steps = 30;
+
+		const progress = Math.min(tick / steps, 1);
+		// Use the cubicOut easing function from svelte/easing
+		return maxDelay - (maxDelay - minDelay) * cubicOut(progress);
+	}
+
+	function parseTags(tagsString: string): string[] {
+		if (!tagsString) return [];
+		return tagsString
+			.split(",")
+			.map((tag) => tag.trim())
+			.filter(Boolean);
+	}
+
+	$effect(() => {
+		if (newActivity.tags) {
+			$form.tags = parseTags(newActivity.tags);
+		}
+	});
 </script>
 
 <Seo
@@ -173,7 +308,6 @@
 						/>
 					</div>
 
-					<!-- Category Select -->
 					<div>
 						<label
 							for="category"
@@ -184,13 +318,13 @@
 							type="single"
 							onValueChange={(v) => (categoryValue = v)}
 							items={categories}
-							value={categoryValue}
+							bind:value={$form.category}
 						>
 							<Select.Trigger
 								class="h-input rounded-9px border-border-input bg-background data-placeholder:text-foreground-alt/50 inline-flex w-full select-none items-center border px-[11px] text-sm transition-colors"
 								aria-label="Select a category"
 							>
-								<Palette
+								<PieChart
 									class="text-muted-foreground mr-[9px] size-6"
 								/>
 								{selectedCategoryLabel}
@@ -240,162 +374,205 @@
 						</Select.Root>
 					</div>
 
-					<!-- Tags -->
 					<div>
 						<label
-							for="tags"
+							for="major"
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+							>Major *</label
+						>
+
+						<Combobox.Root
+							type="single"
+							name="major"
+							onOpenChange={(o) => {
+								if (!o) searchValue = "";
+							}}
+						>
+							<div class="relative w-full">
+								<Icons.graduationCap
+									class="text-muted-foreground absolute start-3 top-1/2 size-6 -translate-y-1/2"
+								/>
+								<Combobox.Input
+									oninput={(e) =>
+										(searchValue = e.currentTarget.value)}
+									class="h-input rounded-9px border-border-input bg-background w-full
+								 focus:ring-foreground focus:ring-offset-background focus:outline-hidden inline-flex truncate border px-11 text-base transition-colors focus:ring-2 focus:ring-offset-2 sm:text-sm"
+									placeholder="Search a major"
+									aria-label="Search a major"
+								/>
+								<Combobox.Trigger
+									class="absolute end-3 top-1/2 size-6 -translate-y-1/2"
+								>
+									<CaretUpDown
+										class="text-muted-foreground size-6"
+									/>
+								</Combobox.Trigger>
+							</div>
+							<Combobox.Portal>
+								<Combobox.Content
+									class="focus-override border-muted bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 outline-hidden z-50 h-96 max-h-[var(--bits-combobox-content-available-height)] w-[var(--bits-combobox-anchor-width)] min-w-[var(--bits-combobox-anchor-width)] select-none rounded-xl border px-1 py-3 data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
+									sideOffset={10}
+								>
+									<Combobox.ScrollUpButton
+										class="flex w-full items-center justify-center py-1"
+										delay={autoScrollDelay}
+									>
+										<CaretDoubleUp class="size-3" />
+									</Combobox.ScrollUpButton>
+									<Combobox.Viewport class="p-1">
+										{#each data.majors as major, i (i + major.id)}
+											<Combobox.Item
+												class="rounded-button data-highlighted:bg-muted outline-hidden flex h-10 w-full select-none items-center py-3 pl-5 pr-1.5 text-sm capitalize"
+												value={major.id}
+												label={major.title}
+											>
+												{#snippet children({
+													selected,
+												})}
+													{major.title}
+													{#if selected}
+														<div class="ml-auto">
+															<Check />
+														</div>
+													{/if}
+												{/snippet}
+											</Combobox.Item>
+										{:else}
+											<span
+												class="block px-5 py-2 text-sm text-muted-foreground"
+											>
+												No results found, try again.
+											</span>
+										{/each}
+									</Combobox.Viewport>
+									<Combobox.ScrollDownButton
+										class="flex w-full items-center justify-center py-1"
+										delay={autoScrollDelay}
+									>
+										<CaretDoubleDown class="size-3" />
+									</Combobox.ScrollDownButton>
+								</Combobox.Content>
+							</Combobox.Portal>
+						</Combobox.Root>
+					</div>
+				</div>
+
+				<div>
+					<label
+						for="duration"
+						class="block text-sm font-medium text-gray-700 mb-1"
+						>Duration *</label
+					>
+					<input
+						type="text"
+						id="duration"
+						name="duration"
+						bind:value={$form.duration}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						placeholder="e.g., 8 weeks, 3 months"
+					/>
+					{#if $errors.duration}
+						<p class="mt-1 text-sm text-red-600">
+							{$errors.duration}
+						</p>
+					{/if}
+				</div>
+
+				<!-- Cost and Recommended -->
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div>
+						<label
+							for="cost"
 							class="block text-sm font-medium text-gray-700 mb-1"
-							>Tags (comma-separated)</label
+							>Cost (USD)</label
+						>
+						<input
+							type="number"
+							id="cost"
+							name="cost"
+							bind:value={$form.cost}
+							min="0"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							placeholder="Cost in USD (optional)"
+						/>
+					</div>
+
+					<div>
+						<label
+							for="recommended"
+							class="block text-sm font-medium text-gray-700 mb-1"
+							>Recommended Rating (1-5)</label
+						>
+						<input
+							type="number"
+							id="recommended"
+							name="recommended"
+							bind:value={$form.recommended}
+							min="1"
+							max="5"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							placeholder="Rating from 1-5 (optional)"
+						/>
+					</div>
+				</div>
+
+				<!-- Good For Who and Link -->
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div>
+						<label
+							for="goodForWho"
+							class="block text-sm font-medium text-gray-700 mb-1"
+							>Good For Who</label
 						>
 						<input
 							type="text"
-							id="tags"
-							bind:value={newActivity.tags}
+							id="goodForWho"
+							name="goodForWho"
+							bind:value={$form.goodForWho}
 							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-							placeholder="tech, coding, silicon valley"
+							placeholder="e.g., Computer Science students"
+						/>
+					</div>
+
+					<div>
+						<label
+							for="link"
+							class="block text-sm font-medium text-gray-700 mb-1"
+							>Link</label
+						>
+						<input
+							type="url"
+							id="link"
+							name="link"
+							bind:value={$form.link}
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							placeholder="https://example.com"
 						/>
 					</div>
 				</div>
 
 				<div>
-					<DateRangePicker.Root
-						bind:value={dateRange}
-						weekdayFormat="short"
-						fixedWeeks={true}
-						class="flex w-full flex-col gap-1.5"
+					<label
+						for="requirements"
+						class="block text-sm font-medium text-gray-700 mb-1"
 					>
-						<DateRangePicker.Label
-							class="block select-none text-sm font-medium text-gray-700"
-							>Activity Period *</DateRangePicker.Label
-						>
-						<div
-							class="h-input rounded-input border-border-input bg-background text-foreground focus-within:border-border-input-hover focus-within:shadow-date-field-focus hover:border-border-input-hover flex w-full select-none items-center border px-2 py-3 text-sm tracking-[0.01em]"
-						>
-							{#each ["start", "end"] as const as type}
-								<DateRangePicker.Input {type}>
-									{#snippet children({ segments })}
-										{#each segments as { part, value }}
-											<div
-												class="inline-block select-none"
-											>
-												{#if part === "literal"}
-													<DateRangePicker.Segment
-														{part}
-														class="text-muted-foreground p-1"
-													>
-														{value}
-													</DateRangePicker.Segment>
-												{:else}
-													<DateRangePicker.Segment
-														{part}
-														class="rounded-5px hover:bg-muted focus:bg-muted focus:text-foreground aria-[valuetext=Empty]:text-muted-foreground focus-visible:ring-0! focus-visible:ring-offset-0! px-1 py-1"
-													>
-														{value}
-													</DateRangePicker.Segment>
-												{/if}
-											</div>
-										{/each}
-									{/snippet}
-								</DateRangePicker.Input>
-								{#if type === "start"}
-									<div
-										aria-hidden="true"
-										class="text-muted-foreground px-1"
-									>
-										–⁠⁠⁠⁠⁠
-									</div>
-								{/if}
-							{/each}
+						Requirements
+					</label>
+				</div>
 
-							<DateRangePicker.Trigger
-								class="text-foreground/60 hover:bg-muted active:bg-dark-10 ml-auto inline-flex size-8 items-center justify-center rounded-[5px] transition-all"
-							>
-								<CalendarBlank class="size-6" />
-							</DateRangePicker.Trigger>
-						</div>
-						<DateRangePicker.Content sideOffset={6} class="z-50">
-							<DateRangePicker.Calendar
-								class="rounded-15px border-dark-10 bg-background-alt shadow-popover mt-6 border p-[22px]"
-							>
-								{#snippet children({ months, weekdays })}
-									<DateRangePicker.Header
-										class="flex items-center justify-between"
-									>
-										<DateRangePicker.PrevButton
-											class="rounded-9px bg-background-alt hover:bg-muted inline-flex size-10 items-center justify-center transition-all active:scale-[0.98]"
-										>
-											<CaretLeft class="size-6" />
-										</DateRangePicker.PrevButton>
-										<DateRangePicker.Heading
-											class="text-[15px] font-medium"
-										/>
-										<DateRangePicker.NextButton
-											class="rounded-9px bg-background-alt hover:bg-muted inline-flex size-10 items-center justify-center transition-all active:scale-[0.98]"
-										>
-											<CaretRight class="size-6" />
-										</DateRangePicker.NextButton>
-									</DateRangePicker.Header>
-									<div
-										class="flex flex-col space-y-4 pt-4 sm:flex-row sm:space-x-4 sm:space-y-0"
-									>
-										{#each months as month}
-											<DateRangePicker.Grid
-												class="w-full border-collapse select-none space-y-1"
-											>
-												<DateRangePicker.GridHead>
-													<DateRangePicker.GridRow
-														class="mb-1 flex w-full justify-between"
-													>
-														{#each weekdays as day}
-															<DateRangePicker.HeadCell
-																class="text-muted-foreground font-normal! w-10 rounded-md text-xs"
-															>
-																<div>
-																	{day.slice(
-																		0,
-																		2,
-																	)}
-																</div>
-															</DateRangePicker.HeadCell>
-														{/each}
-													</DateRangePicker.GridRow>
-												</DateRangePicker.GridHead>
-												<DateRangePicker.GridBody>
-													{#each month.weeks as weekDates}
-														<DateRangePicker.GridRow
-															class="flex w-full"
-														>
-															{#each weekDates as date}
-																<DateRangePicker.Cell
-																	{date}
-																	month={month.value}
-																	class="p-0! relative m-0 size-10 overflow-visible text-center text-sm focus-within:relative focus-within:z-20"
-																>
-																	<DateRangePicker.Day
-																		class={"rounded-9px text-foreground hover:border-foreground focus-visible:ring-foreground! data-selection-end:rounded-9px data-selection-start:rounded-9px data-highlighted:bg-muted data-selected:bg-muted data-selection-end:bg-foreground data-selection-start:bg-foreground data-disabled:text-foreground/30 data-selected:text-foreground data-selection-end:text-background data-selection-start:text-background data-unavailable:text-muted-foreground data-selected:[&:not([data-selection-start])]:[&:not([data-selection-end])]:focus-visible:border-foreground data-disabled:pointer-events-none data-outside-month:pointer-events-none  data-highlighted:rounded-none data-selected:font-medium data-selection-end:font-medium data-selection-start:font-medium data-unavailable:line-through data-selection-start:focus-visible:ring-2 data-selection-start:focus-visible:ring-offset-2! data-selected:[&:not([data-selection-start])]:[&:not([data-selection-end])]:rounded-none data-selected:[&:not([data-selection-start])]:[&:not([data-selection-end])]:focus-visible:ring-0! data-selected:[&:not([data-selection-start])]:[&:not([data-selection-end])]:focus-visible:ring-offset-0! group relative inline-flex size-10 items-center justify-center overflow-visible whitespace-nowrap border border-transparent bg-transparent p-0 text-sm font-normal transition-all"}
-																	>
-																		<div
-																			class="bg-foreground group-data-selected:bg-background group-data-today:block absolute top-[5px] hidden size-1 rounded-full transition-all"
-																		></div>
-																		{date.day}
-																	</DateRangePicker.Day>
-																</DateRangePicker.Cell>
-															{/each}
-														</DateRangePicker.GridRow>
-													{/each}
-												</DateRangePicker.GridBody>
-											</DateRangePicker.Grid>
-										{/each}
-									</div>
-								{/snippet}
-							</DateRangePicker.Calendar>
-						</DateRangePicker.Content>
-					</DateRangePicker.Root>
-					{#if $errors.startDate || $errors.endDate}
-						<p class="mt-1 text-sm text-red-600">
-							{$errors.startDate || $errors.endDate}
-						</p>
-					{/if}
+				<div>
+					<label
+						for="tags"
+						class="block text-sm font-medium text-gray-700 mb-1"
+						>Tags (comma-separated)</label
+					>
+					<input
+						type="text"
+						id="tags"
+						bind:value={$form.tags}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						placeholder="tech, coding, silicon valley"
+					/>
 				</div>
 
 				<!-- Description -->
@@ -492,16 +669,79 @@
 							</div>
 						{/if}
 
-						<div class="flex items-center text-gray-500 mb-4">
-							<Icons.calendar class="w-4 h-4 mr-2" />
-							<span
-								>{activity.startDate} - {activity.endDate}</span
-							>
+						<div class="flex items-center text-gray-500 mb-2">
+							<Icons.clock class="w-4 h-4 mr-2" />
+							<span>{activity.duration}</span>
 						</div>
+
+						{#if activity.major}
+							<div class="flex items-center text-gray-500 mb-2">
+								<Icons.graduationCap class="w-4 h-4 mr-2" />
+								<span>{activity.major.title}</span>
+							</div>
+						{/if}
+
+						{#if activity.cost}
+							<div class="flex items-center text-gray-500 mb-2">
+								<Icons.dollarSign class="w-4 h-4 mr-2" />
+								<span>${activity.cost}</span>
+							</div>
+						{/if}
+
+						{#if activity.recommended}
+							<div class="flex items-center text-gray-500 mb-2">
+								<Icons.star class="w-4 h-4 mr-2" />
+								<span>{activity.recommended}/5</span>
+							</div>
+						{/if}
 
 						<p class="text-gray-600 mb-4 line-clamp-3">
 							{activity.description}
 						</p>
+
+						{#if activity.requirements && activity.requirements.length > 0}
+							<div class="mb-3">
+								<h4
+									class="text-sm font-semibold text-gray-700 mb-1"
+								>
+									Requirements:
+								</h4>
+								<ul
+									class="text-sm text-gray-600 pl-5 list-disc"
+								>
+									{#each activity.requirements as req}
+										<li>{req.title}</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
+
+						{#if activity.goodForWho}
+							<div class="mb-3">
+								<h4
+									class="text-sm font-semibold text-gray-700 mb-1"
+								>
+									Good for:
+								</h4>
+								<p class="text-sm text-gray-600">
+									{activity.goodForWho}
+								</p>
+							</div>
+						{/if}
+
+						{#if activity.link}
+							<div class="mb-3">
+								<a
+									href={activity.link}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="inline-flex items-center text-blue-600 hover:text-blue-800"
+								>
+									<Icons.externalLink class="w-4 h-4 mr-1" />
+									Visit Website
+								</a>
+							</div>
+						{/if}
 
 						{#if activity.tags && activity.tags.length > 0}
 							<div class="flex flex-wrap gap-2 mt-3">

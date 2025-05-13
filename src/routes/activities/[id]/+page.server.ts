@@ -30,8 +30,6 @@ export const load: PageServerLoad = async (event) => {
             ...activity,
             id: activity._id!.toString(),
             userId: typeof activity.userId === 'object' ? activity.userId.toString() : activity.userId,
-            startDate: activity.startDate.toISOString().split('T')[0],
-            endDate: activity.endDate.toISOString().split('T')[0],
             createdAt: activity.createdAt.toISOString(),
             updatedAt: activity.updatedAt.toISOString()
         };

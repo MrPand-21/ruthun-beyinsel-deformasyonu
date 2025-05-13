@@ -13,32 +13,9 @@ export const formSchema = z.object({
             message: "Max 50 characters",
         })
         .optional(),
-    startDate: z
+    duration: z
         .string(),
-    // .refine((date) => {
-    //     const parsedDate = new Date(date);
-    //     return !isNaN(parsedDate.getTime());
-    // }, "Invalid date format")
-    // .transform((date) => new Date(date)),
-    endDate: z
-        .string(),
-    // .refine((date) => {
-    //     const parsedDate = new Date(date);
-    //     return !isNaN(parsedDate.getTime());
-    // }, "Invalid date format")
-    // .transform((date) => new Date(date))
-    // .refine((date) => {
-    // TODO: Uncomment this when startDate is available
-    // const startDate = ctx.parent.startDate;
-    // if (startDate && date < startDate) {
-    //     ctx.addIssue({
-    //         code: z.ZodIssueCode.custom,
-    //         message: "End date must be after start date",
-    //     });
-    //     return false;
-    // }
-    //     return true;
-    // }),
+
     category: z.enum([
         "internship",
         "course",
@@ -46,6 +23,20 @@ export const formSchema = z.object({
         "volunteering",
         "other",
     ]),
+    major: z.object({
+        _id: z.string(),
+        title: z.string()
+    }).optional(),
+    requirements: z.array(
+        z.object({
+            _id: z.string(),
+            title: z.string()
+        })
+    ).optional(),
+    cost: z.number().optional(),
+    recommended: z.number().optional(),
+    goodForWho: z.string().optional(),
+    link: z.string().optional(),
     tags: z
         .array(z.string().max(20, "Max 20 characters"))
         .max(5, "Max 5 tags")
