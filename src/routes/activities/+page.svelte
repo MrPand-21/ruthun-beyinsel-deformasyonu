@@ -60,6 +60,7 @@
 	const formData = superForm(data.form, {
 		taintedMessage: false, // Disable unsaved changes warning
 		resetForm: true,
+		dataType: "json",
 		validators: zodClient(formSchema),
 		onResult: ({ result }) => {
 			if (result.type === "success") {
@@ -98,13 +99,6 @@
 	// Major selection state
 	let majorSearch = $state("");
 	let majorValue = $state<string | undefined>(undefined);
-	let filteredMajors = $derived(
-		majorSearch.trim()
-			? majors.filter((m) =>
-					m.title.toLowerCase().includes(majorSearch.toLowerCase()),
-				)
-			: majors,
-	);
 
 	$effect(() => {
 		if (majorValue) {
@@ -120,32 +114,6 @@
 		}
 	});
 
-	async function addNewMajor() {
-		if (!majorSearch.trim()) return;
-
-		try {
-			const response = await fetch("/api/majors", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ title: majorSearch.trim() }),
-			});
-
-			if (response.ok) {
-				const newMajor = await response.json();
-				majors = [...majors, newMajor];
-				majorValue = newMajor.id;
-				majorSearch = newMajor.title;
-			} else {
-				throw new Error("Failed to add major");
-			}
-		} catch (error) {
-			console.error("Error adding new major:", error);
-			alert("Failed to add new major. Please try again.");
-		}
-	}
-
 	// Requirements combobox selection
 	let selectedRequirements = $state<string[]>([]);
 
@@ -160,45 +128,6 @@
 
 	async function handleSubmit() {
 		console.log("Submitting form...");
-	}
-
-	function toggleRequirement(reqId: string) {
-		if (selectedRequirements.includes(reqId)) {
-			selectedRequirements = selectedRequirements.filter(
-				(id) => id !== reqId,
-			);
-		} else {
-			selectedRequirements = [...selectedRequirements, reqId];
-		}
-	}
-
-	async function addNewRequirement() {
-		if (!requirementSearch.trim()) return;
-
-		try {
-			const response = await fetch("/api/requirements", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ title: requirementSearch.trim() }),
-			});
-
-			if (response.ok) {
-				const newRequirement = await response.json();
-				requirements = [...requirements, newRequirement];
-				selectedRequirements = [
-					...selectedRequirements,
-					newRequirement.id,
-				];
-				requirementSearch = "";
-			} else {
-				throw new Error("Failed to add requirement");
-			}
-		} catch (error) {
-			console.error("Error adding new requirement:", error);
-			alert("Failed to add new requirement. Please try again.");
-		}
 	}
 
 	function autoScrollDelay(tick: number) {
@@ -221,7 +150,7 @@
 
 	$effect(() => {
 		if (newActivity.tags) {
-			$form.tags = parseTags(newActivity.tags);
+			$form.tags = newActivity.tags;
 		}
 	});
 </script>

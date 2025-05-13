@@ -82,7 +82,7 @@ export const actions: Actions = {
             recommended,
             goodForWho,
             link,
-            tags: tags || [],
+            tags: tags || "",
         });
 
         console.log('Activity registered successfully:', activity._id);

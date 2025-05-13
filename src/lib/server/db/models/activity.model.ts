@@ -21,7 +21,7 @@ export interface ActivityDocument {
     recommended?: number;
     goodForWho?: string;
     link?: string;
-    tags: string[];
+    tags: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -45,7 +45,7 @@ export interface Activity {
     recommended?: number;
     goodForWho?: string;
     link?: string;
-    tags: string[];
+    tags: string;
     createdAt: Date;
     updatedAt: Date;
 }

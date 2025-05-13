@@ -38,9 +38,7 @@ export const formSchema = z.object({
     goodForWho: z.string().optional(),
     link: z.string().optional(),
     tags: z
-        .array(z.string().max(20, "Max 20 characters"))
-        .max(5, "Max 5 tags")
-        .optional(),
+        .string().optional(),
     userAgent: z.string().optional(),
     browserHash: z.string().optional(),
     isIncognitoMode: z.boolean().optional().default(false),
