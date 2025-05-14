@@ -87,7 +87,7 @@
 	class="relative p-5 py-6 sm:px-8 mx-auto my-12 grid max-w-5xl place-items-center"
 >
 	<div class="mt-4 grid min-w-[19rem] max-w-md gap-2">
-		<div class="mb-6">
+		<!-- <div class="mb-6">
 			<button
 				on:click={handleGoogleSignIn}
 				class="flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
@@ -103,7 +103,7 @@
 				>OR CONTINUE WITH EMAIL</span
 			>
 			<div class="flex-grow border-t border-gray-300"></div>
-		</div>
+		</div> -->
 
 		<div class="w-full">
 			<form method="POST" use:enhance class="space-y-4">

@@ -156,7 +156,7 @@
 		</CrButton>
 	</form>
 
-	<div class="relative flex items-center">
+	<!-- <div class="relative flex items-center">
 		<div class="flex-grow border-t border-gray-300"></div>
 		<span class="mx-4 flex-shrink text-xs text-gray-500"
 			>OR CONTINUE WITH</span
@@ -169,7 +169,7 @@
 	>
 		<Google class="h-5 w-5" />
 		<span>Sign in with Google</span>
-	</button>
+	</button> -->
 
 	<div class="text-center">
 		<p class="text-sm text-gray-500">
