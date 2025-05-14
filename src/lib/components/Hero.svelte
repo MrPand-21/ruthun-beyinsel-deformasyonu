@@ -32,8 +32,8 @@
     });
 </script>
 
-<div class="max-w-6xl mx-auto mt-12">
-    <div class="relative z-0 space-y-12">
+<div class="max-w-6xl mx-auto md:mt-12">
+    <div class="relative z-0 md:space-y-12 space-y-2">
         <section data-index="0" class="[--i:0]" style="--e:{$entered}">
             <div
                 class="relative bg-indigo-800 rounded-2xl border border-gray-400/20 px-8
@@ -42,7 +42,9 @@
                 class:-translate-y-[calc(100%*(var(--i)-var(--e)))]={$entered <
                     0}
             >
-                <div class="md:flex justify-center items-center h-[60vh]">
+                <div
+                    class="md:flex justify-center items-center h-[85vh] md:h-[60vh]"
+                >
                     <div
                         class="shrink-0 px-12 flex-col justify-center items-start flex gap-4 py-14 max-md:pb-0 md:max-w-md md:pr-0"
                     >
@@ -78,9 +80,11 @@
                             <Icons.arrowRight class="ml-2 h-4 w-4" />
                         </AnimatedButton>
                     </div>
-                    <div class="flex justify-center items-center w-full h-full">
+                    <div
+                        class="md:flex mt-8 md:mt-0 justify-center items-center w-full h-full"
+                    >
                         <Image
-                            class="mx-auto my-auto w-full max-w-[20rem] max-md:-translate-x-[5%]"
+                            class="mx-auto my-auto w-full max-w-[18rem] md:max-w-[20rem] max-md:-translate-x-[5%]"
                             src={LandingImage}
                             alt="Illustration 01"
                         />
@@ -102,7 +106,9 @@
                 class:-translate-y-[calc(100%*(var(--i)-var(--e)))]={$entered <
                     1}
             >
-                <div class="md:flex justify-center items-center">
+                <div
+                    class="md:flex justify-center h-[50vh] md:h-auto items-center"
+                >
                     <div
                         class="shrink-0 px-12 flex-col justify-center items-start flex gap-4 py-14 max-md:pb-0 md:max-w-md md:pr-0"
                     >
@@ -142,7 +148,7 @@
                             >
                         </a>
                     </div>
-                    <div class="relative w-full h-full">
+                    <div class="relative w-full md:inline-block hidden h-full">
                         <Image
                             class="mx-auto w-full max-w-3xs max-md:-translate-x-[5%]"
                             src={LandingImage}
@@ -166,7 +172,9 @@
                 class:-translate-y-[calc(102.5%*(var(--i)-var(--e)))]={$entered <
                     2}
             >
-                <div class="md:flex justify-center items-center">
+                <div
+                    class="md:flex justify-center h-[50vh] md:h-auto items-center"
+                >
                     <div
                         class="shrink-0 px-12 flex-col justify-center items-start flex gap-4 py-14 max-md:pb-0 md:max-w-md md:pr-0"
                     >
@@ -205,7 +213,7 @@
                             >
                         </a>
                     </div>
-                    <div class="relative w-full h-full">
+                    <div class="relative w-full md:inline-block hidden h-full">
                         <Image
                             class="mx-auto w-full max-w-3xs max-md:-translate-x-[5%]"
                             src={LandingImage}

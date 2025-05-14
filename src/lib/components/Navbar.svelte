@@ -22,9 +22,6 @@
     function toggleMobileMenu() {
         mobileMenuOpen = !mobileMenuOpen;
     }
-
-    // Removed handleSignOut function as it's not needed anymore
-    // We'll use the onsubmit handler directly in the form
 </script>
 
 <nav class="w-full py-6 px-6">
@@ -33,37 +30,37 @@
     >
         <a
             href="/"
-            class="flex items-center justify-center p-2 rounded-lg border-2 border-indigo-500/30 hover:border-indigo-500
-            shadow-sm hover:shadow-md transition-all duration-300 transform absolute left-0"
+            class="md:flex hidden items-center justify-center p-2 rounded-lg border-2 border-indigo-500/30 hover:border-indigo-500
+        shadow-sm hover:shadow-md transition-all duration-300 transform absolute left-0"
         >
             <Icons.home class="h-5 w-5" />
         </a>
 
-        <div class="flex gap-4">
+        <div class="md:flex hidden gap-4">
             <a
                 href="/activities"
                 class="  text-[0.9rem] font-medium border
-            hover:border-b-purple-500 border-transparent
-            transition-all duration-300 transform"
+        hover:border-b-purple-500 border-transparent
+        transition-all duration-300 transform"
             >
                 <span>Activities</span>
             </a>
             <a
                 href="/advises"
                 class="
-            text-[0.9rem] font-medium border
-            hover:border-b-purple-500 border-transparent
-            transition-all duration-300 transform"
+        text-[0.9rem] font-medium border
+        hover:border-b-purple-500 border-transparent
+        transition-all duration-300 transform"
             >
                 <span>Advises</span>
             </a>
         </div>
-        <div class="flex items-center absolute right-0 gap-2">
+        <div class="md:flex hidden items-center absolute right-0 gap-1">
             {#if user}
                 <DropdownMenu.Root>
                     <DropdownMenu.Trigger
                         class="border-input hover:border-input-hover hover:cursor-pointer
-                         inline-flex select-none items-center justify-center rounded-full border shadow-btn active:scale-[0.98]"
+                     inline-flex select-none items-center justify-center rounded-full border shadow-btn active:scale-[0.98]"
                     >
                         {#if user.image}
                             <Avatar.Root
@@ -171,11 +168,11 @@
                                     e.preventDefault();
                                 }}
                                 class="rounded-button hover:cursor-pointer
-                                data-highlighted:bg-muted ring-0!
-                                ring-transparent! flex h-10 select-none
-                                items-center py-3 pl-3 pr-1.5 text-sm
-                                font-medium focus-visible:outline-none
-                                text-red-600 dark:text-red-400"
+                            data-highlighted:bg-muted ring-0!
+                            ring-transparent! flex h-10 select-none
+                            items-center py-3 pl-3 pr-1.5 text-sm
+                            font-medium focus-visible:outline-none
+                            text-red-600 dark:text-red-400"
                             >
                                 <form
                                     action="/sign-out"
@@ -212,26 +209,18 @@
         </div>
 
         <!-- Mobile Menu Buttons -->
-        <div class="md:hidden flex items-center space-x-4">
+        <div class="md:hidden flex w-full justify-end items-center">
             <a
-                href="/activities"
-                class="flex items-center justify-center p-3 rounded-xl border-2 border-purple-500/30
-                hover:border-purple-500 text-purple-600 dark:text-purple-400
-                shadow-sm hover:shadow-md transition-all duration-300"
+                href="/"
+                class="flex items-center justify-center p-2 rounded-lg border-2 border-indigo-500/30 hover:border-indigo-500
+        shadow-sm hover:shadow-md transition-all duration-300 transform absolute left-0"
             >
-                <Icons.star class="h-5 w-5" />
-            </a>
-            <a
-                href="/advises"
-                class="flex items-center justify-center p-3 rounded-xl border-2 border-sky-500/30
-                hover:border-sky-500 text-sky-600 dark:text-sky-400
-                shadow-sm hover:shadow-md transition-all duration-300"
-            >
-                <Icons.chat class="h-5 w-5" />
+                <Icons.home class="h-5 w-5" />
             </a>
 
+            <ThemeToggle />
             {#if user}
-                <div class="flex items-center">
+                <button class="flex items-center" onclick={toggleMobileMenu}>
                     {#if user.image}
                         <img
                             src={user.image}
@@ -240,31 +229,29 @@
                         />
                     {:else}
                         <div
-                            class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
+                            class="h-9 w-9 rounded-lg bg-blue-500/80 flex items-center justify-center text-white"
                         >
                             {(user.name || "U").charAt(0).toUpperCase()}
                         </div>
                     {/if}
-                </div>
+                </button>
+            {:else}
+                <button
+                    class="rounded-lg p-2 border border-gray-500/30 hover:border-gray-500
+            text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300
+            shadow-sm hover:shadow-md transition-all duration-300"
+                    onclick={toggleMobileMenu}
+                    aria-label="Toggle menu"
+                >
+                    {#if mobileMenuOpen}
+                        <Icons.x class="h-5 w-5" />
+                    {:else}
+                        <Icons.menu class="h-5 w-5" />
+                    {/if}
+                </button>
             {/if}
-
-            <ThemeToggle />
-            <button
-                class="p-3 rounded-xl border-2 border-gray-500/30 hover:border-gray-500
-                text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300
-                shadow-sm hover:shadow-md transition-all duration-300"
-                onclick={toggleMobileMenu}
-                aria-label="Toggle menu"
-            >
-                {#if mobileMenuOpen}
-                    <Icons.x class="h-5 w-5" />
-                {:else}
-                    <Icons.menu class="h-5 w-5" />
-                {/if}
-            </button>
         </div>
     </div>
-
     {#if mobileMenuOpen}
         <div
             class="md:hidden absolute top-20 right-4 left-4 z-50 py-4 px-6 rounded-2xl bg-white/90 dark:bg-gray-800/90
