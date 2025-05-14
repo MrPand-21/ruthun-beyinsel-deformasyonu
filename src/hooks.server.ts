@@ -28,15 +28,37 @@ const rateLimitHandle: Handle = async ({ event, resolve }) => {
 };
 
 const authHandle: Handle = async ({ event, resolve }) => {
+    const prevSession = !!event.locals.session;
     const token = event.cookies.get("session") ?? null;
+
     if (token === null) {
         event.locals.user = null;
         event.locals.session = null;
-        return resolve(event);
+
+        // Apply headers to force revalidation when session is missing
+        const response = await resolve(event);
+
+        // Check if this is a state change (logged out)
+        if (prevSession) {
+            return new Response(response.body, {
+                status: response.status,
+                statusText: response.statusText,
+                headers: new Headers({
+                    ...Object.fromEntries(response.headers),
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'X-Auth-Changed': 'true'
+                })
+            });
+        }
+
+        return response;
     }
 
+    const { session, user } = await SessionService.validateToken(token);
+    const hadPrevSession = prevSession;
+    const hasNewSession = !!session;
+    const sessionChanged = (!hadPrevSession && hasNewSession) || (hadPrevSession && !hasNewSession);
 
-    const { session, user } = await SessionService.validateToken(token)
     if (session !== null) {
         SessionService.setCookie(event, token, session.expirationDate);
     } else {
@@ -45,7 +67,23 @@ const authHandle: Handle = async ({ event, resolve }) => {
 
     event.locals.session = session;
     event.locals.user = user;
-    return resolve(event);
+
+    // Apply headers to force revalidation when session state changes
+    const response = await resolve(event);
+
+    if (sessionChanged) {
+        return new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers({
+                ...Object.fromEntries(response.headers),
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'X-Auth-Changed': 'true'
+            })
+        });
+    }
+
+    return response;
 };
 
 const dbInitHandle: Handle = async ({ event, resolve }) => {

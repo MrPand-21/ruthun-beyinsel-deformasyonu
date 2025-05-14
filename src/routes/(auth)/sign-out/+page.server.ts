@@ -2,7 +2,6 @@ import { fail, redirect } from "@sveltejs/kit";
 
 import type { Actions, PageServerLoadEvent, RequestEvent } from "./$types";
 import { SessionService } from "$lib/server/db/models/session.model";
-import { invalidateAll } from "$app/navigation";
 
 export function load(event: PageServerLoadEvent) {
     if (event.locals.session === null || event.locals.user === null) {
@@ -27,15 +26,21 @@ export const actions: Actions = {
 };
 
 async function action(event: RequestEvent) {
-
     console.log("Sign out action called");
     if (event.locals.session === null) {
         return fail(401, {
             message: "Not authenticated"
         });
     }
-    SessionService.invalidate(event.locals.session.id);
+
+    // Invalidate the session
+    await SessionService.invalidate(event.locals.session.id);
     SessionService.deleteCookie(event);
 
+    event.locals.user = null;
+    event.locals.session = null;
+
+    // The client-side form will handle the invalidateAll() call
+    // We need to return a redirect to ensure the page reloads with fresh data
     return redirect(302, "/login");
 }

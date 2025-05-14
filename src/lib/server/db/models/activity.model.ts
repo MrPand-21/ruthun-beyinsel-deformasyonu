@@ -21,7 +21,6 @@ export interface ActivityDocument {
     recommended?: number;
     goodForWho?: string;
     link?: string;
-    tags: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -45,7 +44,6 @@ export interface Activity {
     recommended?: number;
     goodForWho?: string;
     link?: string;
-    tags: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -180,7 +178,6 @@ export const ActivityService = {
         category?: string;
         majorId?: string;
         search?: string;
-        tags?: string[];
     }): Promise<Activity[]> => {
         const collection = await getCollection<ActivityDocument>(DB_NAME, COLLECTION);
 
@@ -201,9 +198,7 @@ export const ActivityService = {
             ];
         }
 
-        if (filters.tags && filters.tags.length > 0) {
-            query.tags = { $in: filters.tags };
-        }
+
 
         const activities = await collection.find(query).sort({ createdAt: -1 }).toArray();
 

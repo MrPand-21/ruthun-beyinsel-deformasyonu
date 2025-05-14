@@ -20,6 +20,7 @@
 	import { formSchema } from "./schema";
 	import { PieChart } from "lucide-svelte";
 	import { cubicOut } from "svelte/easing";
+	import CrButton from "$lib/components/ui/button/CrButton.svelte";
 
 	let { data } = $props();
 
@@ -147,12 +148,6 @@
 			.map((tag) => tag.trim())
 			.filter(Boolean);
 	}
-
-	$effect(() => {
-		if (newActivity.tags) {
-			$form.tags = newActivity.tags;
-		}
-	});
 </script>
 
 <Seo
@@ -481,27 +476,12 @@
 				</div>
 
 				<div>
-					<label
+					<!-- <label
 						for="requirements"
 						class="block text-sm font-medium text-gray-700 mb-1"
 					>
 						Requirements
-					</label>
-				</div>
-
-				<div>
-					<label
-						for="tags"
-						class="block text-sm font-medium text-gray-700 mb-1"
-						>Tags (comma-separated)</label
-					>
-					<input
-						type="text"
-						id="tags"
-						bind:value={$form.tags}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						placeholder="tech, coding, silicon valley"
-					/>
+					</label> -->
 				</div>
 
 				<!-- Description -->
@@ -509,7 +489,8 @@
 					<label
 						for="description"
 						class="block text-sm font-medium text-gray-700 mb-1"
-						>Description *</label
+						>What did it add to you or your application? (unique
+						value) *</label
 					>
 					<textarea
 						id="description"
@@ -527,12 +508,13 @@
 				</div>
 
 				<div class="flex justify-end">
-					<button
+					<CrButton
 						type="submit"
-						class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md"
+						onclick={() => (isAddingActivity = false)}
+						class="mr-4"
 					>
 						Save Activity
-					</button>
+					</CrButton>
 				</div>
 			</form>
 		</div>
@@ -669,18 +651,6 @@
 									<Icons.externalLink class="w-4 h-4 mr-1" />
 									Visit Website
 								</a>
-							</div>
-						{/if}
-
-						{#if activity.tags && activity.tags.length > 0}
-							<div class="flex flex-wrap gap-2 mt-3">
-								{#each activity.tags as tag}
-									<span
-										class="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded"
-									>
-										{tag}
-									</span>
-								{/each}
 							</div>
 						{/if}
 					</div>

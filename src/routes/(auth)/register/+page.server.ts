@@ -23,7 +23,7 @@ export const load = async (event) => {
         //     return redirect(302, "/2fa/setup");
         // }
         if (!event.locals.session.twoFactorVerified) {
-            return redirect(302, "/2fa");
+            // return redirect(302, "/2fa");
         }
         return redirect(302, "/");
     }

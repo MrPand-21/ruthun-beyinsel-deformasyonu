@@ -37,8 +37,6 @@ export const formSchema = z.object({
     recommended: z.number().optional(),
     goodForWho: z.string().optional(),
     link: z.string().optional(),
-    tags: z
-        .string().optional(),
     userAgent: z.string().optional(),
     browserHash: z.string().optional(),
     isIncognitoMode: z.boolean().optional().default(false),

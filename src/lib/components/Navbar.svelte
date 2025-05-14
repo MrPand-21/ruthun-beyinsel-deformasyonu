@@ -23,11 +23,8 @@
         mobileMenuOpen = !mobileMenuOpen;
     }
 
-    function handleSignOut() {
-        mobileMenuOpen = false;
-        alert("Sign out clicked");
-        // The form will handle the submission
-    }
+    // Removed handleSignOut function as it's not needed anymore
+    // We'll use the onsubmit handler directly in the form
 </script>
 
 <nav class="w-full py-6 px-6">
@@ -319,12 +316,19 @@
                             >
                         </div>
 
-                        <form action="/sign-out" method="POST" use:enhance>
+                        <form
+                            action="/sign-out"
+                            method="POST"
+                            use:enhance
+                            onsubmit={async () => {
+                                await invalidateAll();
+                                mobileMenuOpen = false;
+                            }}
+                        >
                             <button
                                 type="submit"
                                 class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/20
                                 text-red-600 dark:text-red-400 transition-colors"
-                                onclick={handleSignOut}
                                 transition:scale={{ duration: 200, delay: 200 }}
                             >
                                 <Icons.logOut class="h-6 w-6" />
