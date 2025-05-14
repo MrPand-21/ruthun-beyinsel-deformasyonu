@@ -44,6 +44,8 @@
 			);
 		},
 		onResult: ({ result }) => {
+			console.log(result);
+
 			if (result.type !== "success" || !result.data) {
 				isLoadingFormSubmit = false;
 				return;

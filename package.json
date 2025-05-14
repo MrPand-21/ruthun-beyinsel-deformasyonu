@@ -41,6 +41,7 @@
 		"lucia": "^3.2.2",
 		"lucide-svelte": "^0.476.0",
 		"mode-watcher": "^0.5.1",
-		"mongodb": "^6.16.0"
+		"mongodb": "^6.16.0",
+		"svelte-sonner": "^1.0.1"
 	}
 }

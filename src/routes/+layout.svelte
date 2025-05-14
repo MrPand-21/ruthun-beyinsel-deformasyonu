@@ -7,6 +7,7 @@
 	import { onMount } from "svelte";
 	import { invalidateAll } from "$app/navigation";
 	import { afterNavigate } from "$app/navigation";
+	import { Toaster } from "svelte-sonner";
 
 	const {
 		data,
@@ -65,6 +66,7 @@
 <Analytics />
 
 <ModeWatcher defaultMode="light" />
+<Toaster position="top-right" richColors />
 
 <div class="">
 	<Navbar {user} />

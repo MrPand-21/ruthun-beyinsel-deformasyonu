@@ -32,7 +32,6 @@
 		onSubmit: () => {
 			errorResponse = null;
 			isLoadingFormSubmit = true;
-			console.log("enayi");
 		},
 		onError: () => {
 			isLoadingFormSubmit = false;
