@@ -17,7 +17,7 @@ export const load = async (event) => {
     // If the user is already logged in, redirect to the homepage
     if (event.locals.session || event.locals.user) {
         if (!event.locals.user.emailVerified) {
-            return redirect(302, "/verify-email");
+            // return redirect(302, "/verify-email");
         }
         // if (!event.locals.user.registered2FA) {
         //     return redirect(302, "/2fa/setup");

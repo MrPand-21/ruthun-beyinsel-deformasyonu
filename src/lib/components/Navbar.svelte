@@ -11,6 +11,8 @@
     import UserCircle from "phosphor-svelte/lib/UserCircle";
     import Bell from "phosphor-svelte/lib/Bell";
     import Check from "phosphor-svelte/lib/Check";
+    import CrButton from "./ui/button/CrButton.svelte";
+    import { goto, invalidateAll } from "$app/navigation";
 
     const { user } = $props();
 
@@ -28,12 +30,14 @@
     }
 </script>
 
-<nav class="w-full py-4 px-6">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
+<nav class="w-full py-6 px-6">
+    <div
+        class="max-w-7xl mx-auto flex items-center justify-center relative w-full"
+    >
         <a
             href="/"
             class="flex items-center justify-center p-2 rounded-lg border-2 border-indigo-500/30 hover:border-indigo-500
-            shadow-sm hover:shadow-md transition-all duration-300 transform"
+            shadow-sm hover:shadow-md transition-all duration-300 transform absolute left-0"
         >
             <Icons.home class="h-5 w-5" />
         </a>
@@ -57,11 +61,12 @@
                 <span>Advises</span>
             </a>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center absolute right-0 gap-2">
             {#if user}
                 <DropdownMenu.Root>
                     <DropdownMenu.Trigger
-                        class="border-input hover:border-input-hover inline-flex select-none items-center justify-center rounded-full border shadow-btn active:scale-[0.98]"
+                        class="border-input hover:border-input-hover hover:cursor-pointer
+                         inline-flex select-none items-center justify-center rounded-full border shadow-btn active:scale-[0.98]"
                     >
                         {#if user.image}
                             <Avatar.Root
@@ -178,12 +183,15 @@
                                 <form
                                     action="/sign-out"
                                     method="POST"
-                                    class="hover:cursor-pointer"
+                                    class=""
                                     use:enhance
+                                    onsubmit={async () => {
+                                        await invalidateAll();
+                                    }}
                                 >
                                     <button
                                         type="submit"
-                                        class="w-full flex items-center"
+                                        class="w-full flex items-center hover:cursor-pointer"
                                     >
                                         <Icons.logOut class="mr-2 size-5" />
                                         Sign Out
@@ -194,26 +202,13 @@
                     </DropdownMenu.Portal>
                 </DropdownMenu.Root>
             {:else}
-                <div class="flex items-center space-x-3">
-                    <a
-                        href="/login"
-                        class="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-blue-500/30
-                        hover:border-blue-500
-                        transition-all duration-300 transform"
-                    >
-                        <Icons.logIn class="h-5 w-5" />
-                        <span>Sign In</span>
-                    </a>
-                    <a
-                        href="/register"
-                        class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-blue-600 text-white
-                        hover:bg-blue-700
-                        transition-all duration-300 transform"
-                    >
-                        <Icons.userPlus class="h-5 w-5" />
-                        <span>Register</span>
-                    </a>
-                </div>
+                <CrButton
+                    onclick={() => {
+                        goto("/login");
+                    }}
+                >
+                    <Icons.logIn class="h-5 w-5" />
+                </CrButton>
             {/if}
 
             <ThemeToggle />

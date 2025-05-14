@@ -26,7 +26,7 @@
 
 <Analytics />
 
-<ModeWatcher />
+<ModeWatcher defaultMode="light" />
 
 <div class="">
 	<Navbar {user} />

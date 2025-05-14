@@ -2,13 +2,14 @@ import { fail, redirect } from "@sveltejs/kit";
 
 import type { Actions, PageServerLoadEvent, RequestEvent } from "./$types";
 import { SessionService } from "$lib/server/db/models/session.model";
+import { invalidateAll } from "$app/navigation";
 
 export function load(event: PageServerLoadEvent) {
     if (event.locals.session === null || event.locals.user === null) {
         return redirect(302, "/login");
     }
     if (!event.locals.user.emailVerified) {
-        return redirect(302, "/verify-email");
+        // return redirect(302, "/verify-email");
     }
     // if (!event.locals.user.registered2FA) {
     // 	return redirect(302, "/2fa/setup");
@@ -35,5 +36,6 @@ async function action(event: RequestEvent) {
     }
     SessionService.invalidate(event.locals.session.id);
     SessionService.deleteCookie(event);
+
     return redirect(302, "/login");
 }

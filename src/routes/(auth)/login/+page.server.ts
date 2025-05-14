@@ -12,7 +12,7 @@ import { SessionService, type SessionFlags } from '$lib/server/db/models/session
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.session !== null && event.locals.user !== null) {
 		if (!event.locals.user.emailVerified) {
-			return redirect(302, "/verify-email");
+			// return redirect(302, "/verify-email");
 		}
 		// if (!event.locals.user.registered2FA) {
 		// 	return redirect(302, "/2fa/setup");
@@ -63,7 +63,7 @@ export const actions: Actions = {
 		SessionService.setCookie(event, sessionToken, session.expirationDate);
 
 		if (!user.emailVerified) {
-			return redirect(302, "/verify-email");
+			// return redirect(302, "/verify-email");
 		}
 		// if (!user.registered2FA) {
 		// 	return redirect(302, "/2fa/setup");

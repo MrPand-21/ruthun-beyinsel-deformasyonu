@@ -12,7 +12,7 @@
 	import Google from "$lib/components/icons/google.svelte";
 	import { CrInput } from "$lib/components/ui/input";
 	import CrButton from "$lib/components/ui/button/CrButton.svelte";
-	import { goto } from "$app/navigation";
+	import { goto, invalidateAll } from "$app/navigation";
 
 	let { data: formProps } = $props();
 
@@ -32,6 +32,7 @@
 		onSubmit: () => {
 			errorResponse = null;
 			isLoadingFormSubmit = true;
+			console.log("enayi");
 		},
 		onError: () => {
 			isLoadingFormSubmit = false;
@@ -40,6 +41,7 @@
 			);
 		},
 		onResult: ({ result }) => {
+			console.log("ma");
 			if (result.type !== "success" || !result.data) {
 				isLoadingFormSubmit = false;
 				return;
@@ -77,7 +79,14 @@
 </script>
 
 <div class="mt-4 grid min-w-[19rem] max-w-md gap-6">
-	<form method="POST" use:enhance class="space-y-4">
+	<form
+		method="POST"
+		use:enhance
+		class="space-y-4"
+		onsubmit={async () => {
+			await invalidateAll();
+		}}
+	>
 		<input
 			type="hidden"
 			name="browserHash"
