@@ -50,7 +50,6 @@ export const actions: Actions = {
             recommended,
             goodForWho,
             link,
-            tags
         } = form.data;
 
         console.log('Received activity data:', {
@@ -65,7 +64,6 @@ export const actions: Actions = {
             recommended,
             goodForWho,
             link,
-            tags
         });
 
         const session = await event.locals.session;
@@ -82,7 +80,6 @@ export const actions: Actions = {
             recommended,
             goodForWho,
             link,
-            tags: tags || "",
         });
 
         console.log('Activity registered successfully:', activity._id);
