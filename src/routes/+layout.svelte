@@ -22,8 +22,6 @@
 		children: () => any;
 	} = $props();
 
-	console.log("Layout props", { data });
-
 	const user = $derived(
 		data?.user && {
 			name: data.user.username,

@@ -34,7 +34,7 @@
 
 <Button.Root
 	onclick={handleClick}
-	class=" relative group scale-75 overflow-hidden rounded-md py-2 px-2 w-12 h-12   bg-amber-50 hover:bg-amber-200 cursor-pointer
+	class=" relative group scale-75 overflow-hidden rounded-md py-2 px-2 w-20 h-12   bg-amber-50 hover:bg-amber-200 cursor-pointer
 		 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors duration-300 shadow-sm hover:shadow-lg "
 >
 	<div class="relative z-10 flex items-center justify-center">
@@ -42,7 +42,7 @@
 			class="h-6 w-6 text-amber-500 rotate-0 scale-100 transition-all duration-500 dark:-rotate-90 dark:scale-0"
 		/>
 		<Icons.moon
-			class="absolute h-[1.4rem] w-[1.4rem] text-indigo-400 rotate-90 scale-0 transition-all duration-500 dark:rotate-0 dark:scale-100"
+			class="absolute h-6 w-6 text-indigo-400 rotate-90 scale-0 transition-all duration-500 dark:rotate-0 dark:scale-100"
 		/>
 	</div>
 	<span class="sr-only">Toggle theme</span>

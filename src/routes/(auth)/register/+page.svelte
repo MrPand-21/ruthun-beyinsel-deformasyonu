@@ -17,6 +17,7 @@
 	import Google from "$lib/components/icons/google.svelte";
 	import { CrInput } from "$lib/components/ui/input";
 	import CrButton from "$lib/components/ui/button/CrButton.svelte";
+	import { toast } from "svelte-sonner";
 
 	export let data;
 
@@ -33,9 +34,10 @@
 
 	const form = superForm(data.form, {
 		validators: zodClient(formSchema),
-		onSubmit: () => {
+		onSubmit: ({ formData }) => {
 			errorResponse = null;
 			isLoadingFormSubmit = true;
+			console.log(formData);
 		},
 		onError: () => {
 			isLoadingFormSubmit = false;
@@ -44,10 +46,15 @@
 			);
 		},
 		onResult: ({ result }) => {
-			console.log(result);
-
 			if (result.type !== "success" || !result.data) {
 				isLoadingFormSubmit = false;
+				toast.error("Something went wrong. Please try again.");
+				return;
+			}
+
+			if (result.data.message) {
+				isLoadingFormSubmit = false;
+				toast.error(result.data.message);
 				return;
 			}
 
@@ -56,8 +63,6 @@
 				isLoadingFormSubmit = false;
 				return;
 			}
-
-			// Registration was successful - redirection is handled by the server
 		},
 	});
 

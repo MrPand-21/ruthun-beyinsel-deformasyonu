@@ -13,6 +13,7 @@
     import Check from "phosphor-svelte/lib/Check";
     import CrButton from "./ui/button/CrButton.svelte";
     import { goto, invalidateAll } from "$app/navigation";
+    import { toast } from "svelte-sonner";
 
     const { user } = $props();
 
@@ -202,6 +203,7 @@
                     onclick={() => {
                         goto("/login");
                     }}
+                    class=" !px-1 !py-2"
                 >
                     <Icons.logIn class="h-5 w-5" />
                 </CrButton>
@@ -310,6 +312,7 @@
                             method="POST"
                             use:enhance
                             onsubmit={async () => {
+                                toast.warning("Signing out...");
                                 await invalidateAll();
                                 mobileMenuOpen = false;
                             }}

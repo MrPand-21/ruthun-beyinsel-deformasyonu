@@ -13,6 +13,7 @@
 	import { CrInput } from "$lib/components/ui/input";
 	import CrButton from "$lib/components/ui/button/CrButton.svelte";
 	import { goto, invalidateAll } from "$app/navigation";
+	import { toast } from "svelte-sonner";
 
 	let { data: formProps } = $props();
 
@@ -40,8 +41,8 @@
 			);
 		},
 		onResult: ({ result }) => {
-			console.log("ma");
 			if (result.type !== "success" || !result.data) {
+				toast.error("Something went wrong. Please try again.");
 				isLoadingFormSubmit = false;
 				return;
 			}
@@ -50,6 +51,7 @@
 			if (!formData.valid) {
 				isLoadingFormSubmit = false;
 				errorResponse = { message: "Invalid credentials" };
+				toast.error("Upsi: Invalid credentials");
 				return;
 			}
 
@@ -58,6 +60,7 @@
 				errorResponse = { message: result.data.message };
 				isLoadingFormSubmit = false;
 			} else {
+				toast.success("Login successful, he yo!");
 				goto("/");
 			}
 		},
