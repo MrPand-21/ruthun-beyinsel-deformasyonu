@@ -508,11 +508,7 @@
 				</div>
 
 				<div class="flex justify-end">
-					<CrButton
-						type="submit"
-						onclick={() => (isAddingActivity = false)}
-						class="mr-4"
-					>
+					<CrButton type="submit" class="mr-4">
 						Save Activity
 					</CrButton>
 				</div>
@@ -537,10 +533,8 @@
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 			{#each activities as activity}
-				<div
-					class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-				>
-					<div class="p-6">
+				<ComponentCard title={activity.title}>
+					<div class="px-2">
 						<div class="flex items-center justify-between mb-3">
 							<span
 								class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
@@ -568,10 +562,6 @@
 								<Icons.edit class="w-5 h-5" />
 							</a>
 						</div>
-
-						<h3 class="text-xl font-semibold text-gray-900 mb-2">
-							{activity.title}
-						</h3>
 
 						{#if activity.location}
 							<div class="flex items-center text-gray-500 mb-2">
@@ -654,7 +644,7 @@
 							</div>
 						{/if}
 					</div>
-				</div>
+				</ComponentCard>
 			{/each}
 		</div>
 	{/if}
