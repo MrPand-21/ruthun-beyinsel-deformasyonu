@@ -18,7 +18,7 @@
 		<div
 			class="feature-card group relative p-6 rounded-xl backdrop-blur-sm border border-gray-200/20
 			 dark:border-gray-700/20 bg-white/50 dark:bg-gray-800/50 transition-all duration-300
-			 hover:-translate-y-1"
+			 hover:-translate-y-1 hover:border"
 		>
 			<div class="feature-shadow"></div>
 			<Icons.sun
@@ -33,7 +33,7 @@
 
 		<div
 			class="feature-card group relative p-6 rounded-xl backdrop-blur-sm border border-gray-200/20
-			 dark:border-gray-700/20 bg-white/50 dark:bg-gray-800/50 transition-all duration-300
+			 dark:border-gray-700/20 bg-white/50 dark:bg-gray-800/50 transition-all duration-300 hover:border
 			  hover:-translate-y-1"
 		>
 			<div class="feature-shadow"></div>
@@ -48,7 +48,7 @@
 
 		<div
 			class="feature-card group relative p-6 rounded-xl backdrop-blur-sm border-gray-200/20 border-2 dark:border hover:shadow-gray-200
-			 dark:border-gray-700 bg-white/50 transition-all duration-300 hover:-translate-y-1 hover:border"
+			 dark:border-gray-700/20 dark:bg-gray-800/50 bg-white/50 transition-all duration-300 hover:-translate-y-1 hover:border"
 		>
 			<div class="feature-shadow"></div>
 			<Icons.users

@@ -45,7 +45,11 @@ import {
 	GraduationCap,
 	DollarSign,
 	ExternalLink,
-	Check
+	Check,
+	Eye,
+	ArrowDown,
+	ArrowUp,
+	Lock
 } from 'lucide-svelte';
 import Google from './google.svelte';
 
@@ -58,6 +62,7 @@ export const Icons = {
 	home: Home,
 	menu: Menu,
 	check: Check,
+	eye: Eye,
 	dollarSign: DollarSign,
 	externalLink: ExternalLink,
 	graduationCap: GraduationCap,
@@ -111,7 +116,11 @@ export const Icons = {
 	advice: TriangleAlert,
 	activity: Loader2,
 	search: Search,
-	clock: Clock
+	clock: Clock,
+
+	arrowDown: ArrowDown,
+	arrowUp: ArrowUp,
+	lock: Lock,
 };
 
 export type IconType = any;

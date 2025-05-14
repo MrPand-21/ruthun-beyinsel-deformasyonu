@@ -6,10 +6,12 @@
         ref = $bindable(null),
         labelText = "",
         class: className = "",
+        variant = "default",
         children,
         ...restProps
     }: WithoutChildrenOrChild<Button.RootProps> & {
         labelText?: string;
+        variant?: string;
         children: Snippet;
     } = $props();
 </script>

@@ -97,7 +97,8 @@
                             sideOffset={8}
                         >
                             <DropdownMenu.Item
-                                class="rounded-button data-highlighted:bg-muted ring-0! ring-transparent! flex h-10 select-none items-center py-3 pl-3 pr-1.5 text-sm font-medium focus-visible:outline-none"
+                                onclick={() => goto("/profile")}
+                                class="rounded-button hover:cursor-pointer data-highlighted:bg-muted ring-0! ring-transparent! flex h-10 select-none items-center py-3 pl-3 pr-1.5 text-sm font-medium focus-visible:outline-none"
                             >
                                 <div class="flex items-center">
                                     <UserCircle
@@ -119,7 +120,8 @@
                                 </div>
                             </DropdownMenu.Item>
                             <DropdownMenu.Item
-                                class="rounded-button data-highlighted:bg-muted ring-0! ring-transparent! flex h-10 select-none items-center py-3 pl-3 pr-1.5 text-sm font-medium focus-visible:outline-none"
+                                onclick={() => goto("/profile#settings")}
+                                class="rounded-button hover:cursor-pointer data-highlighted:bg-muted ring-0! ring-transparent! flex h-10 select-none items-center py-3 pl-3 pr-1.5 text-sm font-medium focus-visible:outline-none"
                             >
                                 <div class="flex items-center">
                                     <GearSix
