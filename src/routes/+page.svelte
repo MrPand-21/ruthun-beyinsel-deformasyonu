@@ -67,7 +67,7 @@
 			insights, and activities with fellow students!
 		</p>
 		<AnimatedButton href="/login">
-			Start Browing
+			Start Browsing
 			<Icons.arrowRight class="ml-2 h-4 w-4" />
 		</AnimatedButton>
 	</div>
