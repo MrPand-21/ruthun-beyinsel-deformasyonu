@@ -44,11 +44,11 @@
 			errorResponse = getEmptyErrorResponse(
 				"Something went wrong. Please try again.",
 			);
+			toast.error("Something went wrong. Please try again.");
 		},
 		onResult: ({ result }) => {
 			if (result.type !== "success" || !result.data) {
 				isLoadingFormSubmit = false;
-				toast.error("Something went wrong. Please try again.");
 				return;
 			}
 
