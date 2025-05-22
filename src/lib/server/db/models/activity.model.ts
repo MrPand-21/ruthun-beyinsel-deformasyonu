@@ -3,7 +3,12 @@ import { getDatabaseName, getCollection } from '../mongodb';
 
 export interface ActivityDocument {
     _id?: ObjectId;
-    userId?: ObjectId;
+    userId: ObjectId;
+    userInfo: {
+        username: string;
+        email: string;
+        image?: string;
+    };
     title: string;
     description: string;
     location?: string;
@@ -27,6 +32,12 @@ export interface ActivityDocument {
 
 export interface Activity {
     id: string;
+    userId: string;
+    userInfo: {
+        username: string;
+        email: string;
+        image?: string;
+    };
     title: string;
     description: string;
     location?: string;
@@ -52,10 +63,10 @@ const COLLECTION = 'activities';
 const DB_NAME = getDatabaseName();
 
 export const ActivityService = {
-    findByUserId: async (userId: string) => {
+    findByUserId: async (userId: ObjectId) => {
         const collection = await getCollection(DB_NAME, COLLECTION);
         return collection.find({
-            userId: new ObjectId(userId)
+            userId: userId
         }).sort({ createdAt: -1 }).toArray() as Promise<ActivityDocument[]>;
     },
 
@@ -63,10 +74,12 @@ export const ActivityService = {
         const collection = await getCollection<ActivityDocument>(DB_NAME, COLLECTION);
         const activities = await collection.find({}).sort({ createdAt: -1 }).toArray();
 
-        const formattedActivities: Activity[] = activities.map(({ _id, userId, major, requirements, ...rest }) => {
+        const formattedActivities: Activity[] = activities.map(({ _id, userId, userInfo, major, requirements, ...rest }) => {
             return {
                 ...rest,
                 id: _id.toString(),
+                userId: userId.toString(),
+                userInfo,
                 major: major ? {
                     id: major._id,
                     title: major.title
@@ -81,13 +94,9 @@ export const ActivityService = {
         return formattedActivities;
     },
 
-    findById: async (id: string, userId?: string) => {
+    findById: async (id: string) => {
         const collection = await getCollection(DB_NAME, COLLECTION);
         const query: any = { _id: new ObjectId(id) };
-
-        if (userId) {
-            query.userId = new ObjectId(userId);
-        }
 
         return collection.findOne(query) as Promise<ActivityDocument | null>;
     },
@@ -95,17 +104,15 @@ export const ActivityService = {
     create: async (activityData: Omit<ActivityDocument, '_id' | 'createdAt' | 'updatedAt'>) => {
         const collection = await getCollection(DB_NAME, COLLECTION);
 
-        const userId = typeof activityData.userId === 'string'
-            ? new ObjectId(activityData.userId)
-            : activityData.userId || new ObjectId("680782dd9ff1467f8cf70754");
+        if (activityData.userId && typeof activityData.userId === 'string') {
+            activityData.userId = new ObjectId(activityData.userId);
+        }
 
-        // Format major field if it's provided
         const major = activityData.major ? {
             _id: activityData.major._id,
             title: activityData.major.title
         } : undefined;
 
-        // Format requirements field if it's provided
         const requirements = activityData.requirements ?
             activityData.requirements.map(req => ({
                 _id: req._id,
@@ -115,7 +122,6 @@ export const ActivityService = {
         const now = new Date();
         const newActivity = {
             ...activityData,
-            userId,
             major,
             requirements,
             createdAt: now,
@@ -198,13 +204,13 @@ export const ActivityService = {
             ];
         }
 
-
-
         const activities = await collection.find(query).sort({ createdAt: -1 }).toArray();
 
-        return activities.map(({ _id, userId, major, requirements, ...rest }) => ({
+        return activities.map(({ _id, userId, userInfo, major, requirements, ...rest }) => ({
             ...rest,
             id: _id.toString(),
+            userId: userId.toString(),
+            userInfo,
             major: major ? {
                 id: major._id,
                 title: major.title

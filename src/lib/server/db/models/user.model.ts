@@ -8,6 +8,7 @@ export interface UserDocument {
     email: string;
     username: string;
     image?: string;
+    activities?: ObjectId[]; // Reference to activity IDs
 
     passwordHash?: string;
     emailVerified: boolean;
@@ -23,10 +24,24 @@ export interface User {
     username: string;
     emailVerified: boolean;
     registered2FA: boolean;
+    activities?: string[]; // Activity IDs in string format for the frontend
 }
 
 const COLLECTION = 'users';
 const DB_NAME = getDatabaseName();
+
+// Initialize indexes
+async function createIndexes() {
+    const collection = await getCollection(DB_NAME, COLLECTION);
+    await collection.createIndexes([
+        { key: { email: 1 }, unique: true },
+        { key: { username: 1 }, unique: true },
+        { key: { activities: 1 } } // Index for activities array
+    ]);
+}
+
+// Call createIndexes when the module is loaded
+createIndexes().catch(console.error);
 
 export const UserService = {
     verifyUsernameInput: (username: string): boolean => {
@@ -40,9 +55,9 @@ export const UserService = {
         }
 
         userData.recoveryCode = encryptString(generateRandomRecoveryCode());
-        console.log("Recovery codev2: ", decryptToString(userData.recoveryCode));
         userData.emailVerified = false;
         userData.totpKey = null;
+        userData.activities = []; // Initialize empty activities array
 
         const result = await collection.insertOne({
             ...userData,
@@ -54,7 +69,8 @@ export const UserService = {
             username: userData.username,
             email: userData.email,
             emailVerified: false,
-            registered2FA: false
+            registered2FA: false,
+            activities: []
         };
     },
     update: async (_id: ObjectId, userData: Partial<UserDocument>) => {
@@ -124,5 +140,25 @@ export const UserService = {
         const collection = await getCollection<UserDocument>(DB_NAME, COLLECTION);
         const user = await collection.findOne({ email: email.toLowerCase() });
         return !user;
-    }
+    },
+
+    // Add new method to handle adding activities to a user
+    addActivity: async (_id: ObjectId, activityId: ObjectId): Promise<boolean> => {
+        const collection = await getCollection<UserDocument>(DB_NAME, COLLECTION);
+        const result = await collection.updateOne(
+            { _id },
+            {
+                $addToSet: { activities: activityId },
+                $set: { updatedAt: new Date() }
+            }
+        );
+        return result.modifiedCount > 0;
+    },
+
+    // Add method to get user's activities
+    getUserActivities: async (_id: ObjectId): Promise<ObjectId[]> => {
+        const collection = await getCollection<UserDocument>(DB_NAME, COLLECTION);
+        const user = await collection.findOne({ _id }, { projection: { activities: 1 } });
+        return user?.activities || [];
+    },
 }

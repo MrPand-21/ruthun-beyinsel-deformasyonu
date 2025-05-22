@@ -6,6 +6,7 @@ import { fail, redirect, type Actions } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/server';
 import { zod } from 'sveltekit-superforms/adapters';
 import { formSchema } from './schema';
+import { ObjectId } from 'mongodb';
 
 export const load = async (event) => {
     const session = await event.locals.session;
@@ -28,8 +29,6 @@ export const load = async (event) => {
 
 export const actions: Actions = {
     default: async (event) => {
-        console.log('Received form submission:', event.request.body);
-
         const form = await superValidate(event, zod(formSchema));
 
         if (!form.valid) {
@@ -52,36 +51,39 @@ export const actions: Actions = {
             link,
         } = form.data;
 
-        console.log('Received activity data:', {
-            title,
-            description,
-            location,
-            duration,
-            category,
-            major,
-            requirements,
-            cost,
-            recommended,
-            goodForWho,
-            link,
-        });
-
         const session = await event.locals.session;
+        if (!session) {
+            return fail(401, { form, error: 'Unauthorized' });
+        }
 
-        const activity = await ActivityService.create({
-            title,
-            description,
-            location,
-            duration,
-            category,
-            major,
-            requirements,
-            cost,
-            recommended,
-            goodForWho,
-            link,
-        });
+        try {
+            await ActivityService.create({
+                title,
+                description,
+                location,
+                duration,
+                category,
+                major,
+                requirements,
+                cost,
+                recommended,
+                goodForWho,
+                link,
+                userId: new ObjectId(session.user.id),
+                userInfo: {
+                    username: session.user.username,
+                    email: session.user.email,
+                    image: session.user.image
+                }
+            });
 
-        console.log('Activity registered successfully:', activity._id);
+            return { form };
+        } catch (error) {
+            console.error('Error creating activity:', error);
+            return fail(500, {
+                form,
+                error: 'Failed to create activity'
+            });
+        }
     }
 };

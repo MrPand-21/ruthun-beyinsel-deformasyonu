@@ -4,14 +4,8 @@ export const formSchema = z.object({
     title: z.string().max(100, "Max 100 characters"),
     description: z
         .string()
-        .max(50, {
-            message: "Max 50 characters",
-        })
     , location: z
         .string()
-        .max(50, {
-            message: "Max 50 characters",
-        })
         .optional(),
     duration: z
         .string(),
