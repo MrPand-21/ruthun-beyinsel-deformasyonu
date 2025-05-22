@@ -21,6 +21,7 @@
 	import { PieChart } from "lucide-svelte";
 	import { cubicOut } from "svelte/easing";
 	import CrButton from "$lib/components/ui/button/CrButton.svelte";
+	import Card from "$lib/components/ui/Card.svelte";
 
 	let { data } = $props();
 
@@ -240,13 +241,10 @@
 	{/if}
 
 	{#if showFilters}
-		<div
-			class="bg-white/80 backdrop-blur-md backdrop-saturate-150 rounded-lg shadow-lg p-6 mb-8 transition-all duration-300 transform animate-in fade-in slide-in-from-top-5 border border-gray-100/50"
-			style="--tw-enter-duration: 400ms;"
-		>
+		<Card className="mb-6 flex flex-col gap-4">
 			<div class="flex items-center justify-between mb-4">
 				<h2
-					class="text-lg font-semibold text-gray-800 flex items-center"
+					class="text-lg font-semibold text-gray-800 dark:text-gray-400 flex items-center"
 				>
 					<Icons.sliders class="w-5 h-5 mr-2 text-blue-500" />
 					Filter Activities
@@ -261,119 +259,90 @@
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-				<div class="space-y-2">
-					<label
-						for="filterCategory"
-						class="text-sm font-medium text-gray-700 mb-1 flex items-center"
+				<div class="relative">
+					<select
+						id="filterCategory"
+						bind:value={filterCategory}
+						class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
 					>
-						<Icons.tag class="w-4 h-4 mr-1 text-gray-500" />
-						Category
-					</label>
-					<div class="relative">
-						<select
-							id="filterCategory"
-							bind:value={filterCategory}
-							class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 bg-white shadow-sm hover:shadow-md"
-						>
-							<option value="all">All Categories</option>
-							<option value="internship">Internship</option>
-							<option value="course">Course</option>
-							<option value="travel">Travel</option>
-							<option value="volunteering">Volunteering</option>
-							<option value="research">Research</option>
-							<option value="workshop">Workshop</option>
-							<option value="hackathon">Hackathon</option>
-							<option value="other">Other</option>
-						</select>
-						<div
-							class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
-						>
-							{#if filterCategory === "internship"}
-								<Icons.briefcase class="w-5 h-5" />
-							{:else if filterCategory === "course"}
-								<Icons.book class="w-5 h-5" />
-							{:else if filterCategory === "travel"}
-								<Icons.plane class="w-5 h-5" />
-							{:else if filterCategory === "volunteering"}
-								<Icons.heart class="w-5 h-5" />
-							{:else if filterCategory === "other"}
-								<Icons.star class="w-5 h-5" />
-							{:else}
-								<Icons.grid class="w-5 h-5" />
-							{/if}
-						</div>
-						<div
-							class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
-						>
-							<Icons.chevronsUpDown class="w-4 h-4" />
-						</div>
-					</div>
-				</div>
-
-				<div class="space-y-2">
-					<label
-						for="filterMajor"
-						class="flex text-sm font-medium text-gray-700 mb-1 items-center"
+						<option value="all">All Categories</option>
+						<option value="internship">Internship</option>
+						<option value="course">Course</option>
+						<option value="travel">Travel</option>
+						<option value="volunteering">Volunteering</option>
+						<option value="research">Research</option>
+						<option value="workshop">Workshop</option>
+						<option value="hackathon">Hackathon</option>
+						<option value="other">Other</option>
+					</select>
+					<div
+						class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
 					>
-						<Icons.graduationCap
-							class="w-4 h-4 mr-1 text-gray-500"
-						/>
-						Major
-					</label>
-					<div class="relative">
-						<select
-							id="filterMajor"
-							bind:value={filterMajor}
-							class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 bg-white shadow-sm hover:shadow-md"
-						>
-							<option value="all">All Majors</option>
-							{#each majors as major}
-								<option value={major.id}>{major.title}</option>
-							{/each}
-						</select>
-						<div
-							class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
-						>
-							<Icons.graduationCap class="w-5 h-5" />
-						</div>
-						<div
-							class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
-						>
-							<Icons.chevronsUpDown class="w-4 h-4" />
-						</div>
-					</div>
-				</div>
-
-				<div class="space-y-2">
-					<label
-						for="filterSearch"
-						class="text-sm font-medium text-gray-700 mb-1 flex items-center"
-					>
-						<Icons.search class="w-4 h-4 mr-1 text-gray-500" />
-						Search
-					</label>
-					<div class="relative">
-						<input
-							type="text"
-							id="filterSearch"
-							placeholder="Search activities..."
-							bind:value={filterSearch}
-							class="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 bg-white shadow-sm hover:shadow-md"
-						/>
-						<div
-							class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
-						>
-							<Icons.search class="w-5 h-5" />
-						</div>
-						{#if filterSearch}
-							<button
-								class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-								onclick={() => (filterSearch = "")}
-							>
-								<Icons.x class="w-4 h-4" />
-							</button>
+						{#if filterCategory === "internship"}
+							<Icons.briefcase class="w-5 h-5" />
+						{:else if filterCategory === "course"}
+							<Icons.book class="w-5 h-5" />
+						{:else if filterCategory === "travel"}
+							<Icons.plane class="w-5 h-5" />
+						{:else if filterCategory === "volunteering"}
+							<Icons.heart class="w-5 h-5" />
+						{:else if filterCategory === "other"}
+							<Icons.star class="w-5 h-5" />
+						{:else}
+							<Icons.grid class="w-5 h-5" />
 						{/if}
 					</div>
+					<div
+						class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
+					>
+						<Icons.chevronsUpDown class="w-4 h-4" />
+					</div>
+				</div>
+
+				<div class="relative">
+					<select
+						id="filterMajor"
+						bind:value={filterMajor}
+						class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
+					>
+						<option value="all">All Majors</option>
+						{#each majors as major}
+							<option value={major.id}>{major.title}</option>
+						{/each}
+					</select>
+					<div
+						class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
+					>
+						<Icons.graduationCap class="w-5 h-5" />
+					</div>
+					<div
+						class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
+					>
+						<Icons.chevronsUpDown class="w-4 h-4" />
+					</div>
+				</div>
+
+				<div class="relative">
+					<input
+						type="text"
+						id="filterSearch"
+						placeholder="Search activities..."
+						bind:value={filterSearch}
+						class="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
+					/>
+					<div
+						class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
+					>
+						<Icons.search class="w-5 h-5" />
+					</div>
+					{#if filterSearch}
+						<button
+							class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+							onclick={() => (filterSearch = "")}
+						>
+							<Icons.x class="w-4 h-4" />
+						</button>
+					{/if}
 				</div>
 			</div>
 
@@ -390,10 +359,10 @@
 								class="opacity-0 absolute w-0 h-0 peer"
 							/>
 							<div
-								class="w-10 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-500 transition-colors duration-300"
+								class="w-10 h-6 bg-gray-300 dark:bg-gray-700 rounded-full peer-checked:bg-blue-500 transition-colors duration-300"
 							></div>
 							<div
-								class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-4"
+								class="absolute left-1 top-1 w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-4"
 							></div>
 						</div>
 						<span class="text-sm text-gray-700"
@@ -416,12 +385,12 @@
 					>
 				{/if}
 			</div>
-		</div>
+		</Card>
 	{/if}
 
 	{#if isAddingActivity}
 		<div
-			class="bg-white/80 backdrop-blur-md backdrop-saturate-150 rounded-lg shadow-lg p-6 mb-8 border border-gray-100/50"
+			class="/80 backdrop-blur-md backdrop-saturate-150 rounded-lg shadow-lg p-6 mb-8 border border-gray-100/50"
 		>
 			<h2 class="text-xl font-semibold mb-4">Add New Summer Activity</h2>
 

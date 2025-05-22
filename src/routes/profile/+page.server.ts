@@ -39,7 +39,6 @@ export const load: PageServerLoad = async (event) => {
             updatedAt: activity.updatedAt.toISOString()
         }));
 
-        // Get user data
         const user = await UserService.findById(session.userId);
         if (!user) {
             throw new Error('User not found');

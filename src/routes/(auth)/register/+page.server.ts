@@ -59,8 +59,8 @@ export const actions: Actions = {
 
         console.log('Received registration data:', { username, email, password });
 
-        const strongPassword = await verifyPasswordStrength(password);
-        if (!strongPassword) return fail(400, { message: "Weak password", email });
+        // const strongPassword = await verifyPasswordStrength(password);
+        // if (!strongPassword) return fail(400, { message: "Weak password", email });
         if (clientIP !== null && !ipBucket.consume(clientIP, 1)) return fail(429, { message: "Too many requests", email, name });
 
         const user = await UserService.create({
