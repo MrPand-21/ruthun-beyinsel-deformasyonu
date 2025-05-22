@@ -150,7 +150,11 @@
 			</div>
 		{/if}
 
-		<CrButton type="submit" disabled={isLoadingFormSubmit}>
+		<CrButton
+			variant="primary"
+			type="submit"
+			disabled={isLoadingFormSubmit}
+		>
 			{#if isLoadingFormSubmit}
 				<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
 			{/if}

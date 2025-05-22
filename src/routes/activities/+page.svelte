@@ -28,12 +28,53 @@
 	let majors = $state<Major[]>(data.majors || []);
 	let requirements = $state<Requirement[]>(data.requirements || []);
 	let isAddingActivity = $state(false);
+	let showFilters = $state(false);
 
-	let searchValue = $state("");
+	// Filter states
+	let filterCategory = $state<string>("all");
+	let filterMajor = $state<string>("all");
+	let filterSearch = $state<string>("");
+	let filterUserActivities = $state<boolean>(false);
 
-	// New major form state
+	// Computed filtered activities
+	$effect(() => {
+		let filtered = [...data.activities];
+
+		// Filter by category
+		if (filterCategory !== "all") {
+			filtered = filtered.filter((a) => a.category === filterCategory);
+		}
+
+		// Filter by major
+		if (filterMajor !== "all") {
+			filtered = filtered.filter((a) => a.major?.id === filterMajor);
+		}
+
+		// Filter by search term
+		if (filterSearch.trim()) {
+			const searchLower = filterSearch.toLowerCase();
+			filtered = filtered.filter(
+				(a) =>
+					a.title.toLowerCase().includes(searchLower) ||
+					a.description.toLowerCase().includes(searchLower) ||
+					a.location?.toLowerCase().includes(searchLower) ||
+					a.goodForWho?.toLowerCase().includes(searchLower),
+			);
+		}
+
+		// Filter user's activities
+		if (filterUserActivities) {
+			filtered = filtered.filter(
+				(a) => a.userId === data?.session.userId,
+			);
+		}
+
+		activities = filtered;
+	});
+
 	let newMajorName = $state("");
 	let showAddMajorForm = $state(false);
+	let searchValue = $state("");
 
 	// Requirement combobox state
 	let requirementSearch = $state("");
@@ -148,6 +189,17 @@
 			.map((tag) => tag.trim())
 			.filter(Boolean);
 	}
+
+	function toggleFilters() {
+		showFilters = !showFilters;
+	}
+
+	function clearFilters() {
+		filterCategory = "all";
+		filterMajor = "all";
+		filterSearch = "";
+		filterUserActivities = false;
+	}
 </script>
 
 <Seo
@@ -158,28 +210,211 @@
 
 <div class="container mx-auto px-4 py-8">
 	<div class="flex items-center justify-between mb-8">
-		<h1 class="text-3xl font-bold">Summer Activities</h1>
+		<h1 class="text-3xl font-bold flex-1">Summer Activities</h1>
 
-		<button
-			onclick={() => (isAddingActivity = !isAddingActivity)}
-			class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center"
-		>
-			{#if isAddingActivity}
-				<Icons.x class="w-5 h-5 mr-2" />
-				Cancel
-			{:else}
-				<Icons.plus class="w-5 h-5 mr-2" />
-				Add Activity
-			{/if}
-		</button>
+		<div class="flex space-x-2 flex-1/3">
+			<CrButton variant="outline" onclick={toggleFilters}>
+				<Icons.filter class="w-5 h-5 mr-2" />
+				{showFilters ? "Hide Filters" : "Show Filters"}
+			</CrButton>
+			<CrButton
+				variant="default"
+				onclick={() => (isAddingActivity = !isAddingActivity)}
+			>
+				{#if isAddingActivity}
+					<Icons.x class="w-5 h-5 mr-2" />
+					Cancel
+				{:else}
+					<Icons.plus class="w-5 h-5 mr-2" />
+					Add Activity
+				{/if}
+			</CrButton>
+		</div>
 	</div>
 
 	{#if successMessage}
 		<div
-			class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6"
+			class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 shadow-sm transform transition-all duration-300 animate-in fade-in slide-in-from-top"
 			role="alert"
 		>
 			<span class="block sm:inline">{successMessage}</span>
+		</div>
+	{/if}
+
+	{#if showFilters}
+		<div
+			class="bg-white rounded-lg shadow-md p-6 mb-8 transition-all duration-300 transform animate-in fade-in slide-in-from-top-5"
+			style="--tw-enter-duration: 400ms;"
+		>
+			<div class="flex items-center justify-between mb-4">
+				<h2
+					class="text-lg font-semibold text-gray-800 flex items-center"
+				>
+					<Icons.sliders class="w-5 h-5 mr-2 text-blue-500" />
+					Filter Activities
+				</h2>
+				<button
+					onclick={clearFilters}
+					class="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200 flex items-center"
+				>
+					<Icons.refresh class="w-4 h-4 mr-1" />
+					Reset Filters
+				</button>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+				<div class="space-y-2">
+					<label
+						for="filterCategory"
+						class="block text-sm font-medium text-gray-700 mb-1 flex items-center"
+					>
+						<Icons.tag class="w-4 h-4 mr-1 text-gray-500" />
+						Category
+					</label>
+					<div class="relative">
+						<select
+							id="filterCategory"
+							bind:value={filterCategory}
+							class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 bg-white shadow-sm hover:shadow-md"
+						>
+							<option value="all">All Categories</option>
+							<option value="internship">Internship</option>
+							<option value="course">Course</option>
+							<option value="travel">Travel</option>
+							<option value="volunteering">Volunteering</option>
+							<option value="other">Other</option>
+						</select>
+						<div
+							class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
+						>
+							{#if filterCategory === "internship"}
+								<Icons.briefcase class="w-5 h-5" />
+							{:else if filterCategory === "course"}
+								<Icons.book class="w-5 h-5" />
+							{:else if filterCategory === "travel"}
+								<Icons.plane class="w-5 h-5" />
+							{:else if filterCategory === "volunteering"}
+								<Icons.heart class="w-5 h-5" />
+							{:else if filterCategory === "other"}
+								<Icons.star class="w-5 h-5" />
+							{:else}
+								<Icons.grid class="w-5 h-5" />
+							{/if}
+						</div>
+						<div
+							class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
+						>
+							<Icons.chevronsUpDown class="w-4 h-4" />
+						</div>
+					</div>
+				</div>
+
+				<div class="space-y-2">
+					<label
+						for="filterMajor"
+						class="block text-sm font-medium text-gray-700 mb-1 flex items-center"
+					>
+						<Icons.graduationCap
+							class="w-4 h-4 mr-1 text-gray-500"
+						/>
+						Major
+					</label>
+					<div class="relative">
+						<select
+							id="filterMajor"
+							bind:value={filterMajor}
+							class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 bg-white shadow-sm hover:shadow-md"
+						>
+							<option value="all">All Majors</option>
+							{#each majors as major}
+								<option value={major.id}>{major.title}</option>
+							{/each}
+						</select>
+						<div
+							class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
+						>
+							<Icons.graduationCap class="w-5 h-5" />
+						</div>
+						<div
+							class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
+						>
+							<Icons.chevronsUpDown class="w-4 h-4" />
+						</div>
+					</div>
+				</div>
+
+				<div class="space-y-2">
+					<label
+						for="filterSearch"
+						class="block text-sm font-medium text-gray-700 mb-1 flex items-center"
+					>
+						<Icons.search class="w-4 h-4 mr-1 text-gray-500" />
+						Search
+					</label>
+					<div class="relative">
+						<input
+							type="text"
+							id="filterSearch"
+							placeholder="Search activities..."
+							bind:value={filterSearch}
+							class="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 bg-white shadow-sm hover:shadow-md"
+						/>
+						<div
+							class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
+						>
+							<Icons.search class="w-5 h-5" />
+						</div>
+						{#if filterSearch}
+							<button
+								class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+								onclick={() => (filterSearch = "")}
+							>
+								<Icons.x class="w-4 h-4" />
+							</button>
+						{/if}
+					</div>
+				</div>
+			</div>
+
+			{#if data?.session?.userId}
+				<div class="mt-4 pl-1">
+					<label class="inline-flex items-center cursor-pointer">
+						<div
+							class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
+						>
+							<input
+								type="checkbox"
+								id="filterUserActivities"
+								bind:checked={filterUserActivities}
+								class="opacity-0 absolute w-0 h-0 peer"
+							/>
+							<div
+								class="w-10 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-500 transition-colors duration-300"
+							></div>
+							<div
+								class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-4"
+							></div>
+						</div>
+						<span class="text-sm text-gray-700"
+							>Show only my activities</span
+						>
+					</label>
+				</div>
+			{/if}
+
+			<div class="mt-4 flex items-center text-sm text-gray-600">
+				<Icons.filter class="w-4 h-4 mr-1.5 text-blue-500" />
+				<span class="font-medium"
+					>Showing {" " + activities.length}</span
+				>
+				of {data.activities.length} activities
+				{#if activities.length !== data.activities.length}
+					<span
+						class="ml-1.5 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+						>Filtered</span
+					>
+				{/if}
+			</div>
 		</div>
 	{/if}
 
@@ -508,7 +743,7 @@
 				</div>
 
 				<div class="flex justify-end">
-					<CrButton type="submit" class="mr-4">
+					<CrButton variant="primary" type="submit" class="mr-4">
 						Save Activity
 					</CrButton>
 				</div>

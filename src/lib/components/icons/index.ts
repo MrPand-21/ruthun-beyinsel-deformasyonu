@@ -49,7 +49,12 @@ import {
 	Eye,
 	ArrowDown,
 	ArrowUp,
-	Lock
+	Lock,
+	Filter,
+	RefreshCw,
+	Tag,
+	Sliders,
+	Grid
 } from 'lucide-svelte';
 import Google from './google.svelte';
 
@@ -67,12 +72,17 @@ export const Icons = {
 	externalLink: ExternalLink,
 	graduationCap: GraduationCap,
 	x: X,
+	grid: Grid,
+	sliders: Sliders,
 	arrowLeft: ArrowLeft,
 	arrowRight: ArrowRight,
+	chevronsUpDown: ChevronsUpDown,
 	plus: Plus,
 	edit: Edit,
 	trash: Trash,
 	star: Star,
+	tag: Tag,
+	refresh: RefreshCw,
 	calendar: Calendar,
 
 	// Authentication
@@ -117,6 +127,7 @@ export const Icons = {
 	activity: Loader2,
 	search: Search,
 	clock: Clock,
+	filter: Filter,
 
 	arrowDown: ArrowDown,
 	arrowUp: ArrowUp,

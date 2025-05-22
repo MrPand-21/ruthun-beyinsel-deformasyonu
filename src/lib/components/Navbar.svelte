@@ -200,6 +200,7 @@
                 </DropdownMenu.Root>
             {:else}
                 <CrButton
+                    variant="outline"
                     onclick={() => {
                         goto("/login");
                     }}

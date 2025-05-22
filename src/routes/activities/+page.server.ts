@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { ActivityService } from '$lib/server/db/models/activity.model';
+import { ActivityService, type Activity } from '$lib/server/db/models/activity.model';
 import { MajorService } from '$lib/server/db/models/major.model';
 import { RequirementService } from '$lib/server/db/models/requirement.model';
 import { fail, redirect, type Actions } from '@sveltejs/kit';
@@ -15,7 +15,7 @@ export const load = async (event) => {
         redirect(303, '/login?callbackUrl=/activities');
     }
 
-    const activities = await ActivityService.findAll();
+    const activities: Activity[] = await ActivityService.findAll();
     const majors = await MajorService.findAll();
     const requirements = await RequirementService.findAll();
 
@@ -23,6 +23,10 @@ export const load = async (event) => {
         activities,
         majors,
         requirements,
+        session: {
+            id: session.id.toString(),
+            userId: session.userId.toString()
+        },
         form: await superValidate(zod(formSchema))
     };
 };
@@ -69,12 +73,7 @@ export const actions: Actions = {
                 recommended,
                 goodForWho,
                 link,
-                userId: new ObjectId(session.user.id),
-                userInfo: {
-                    username: session.user.username,
-                    email: session.user.email,
-                    image: session.user.image
-                }
+                userId: session.userId,
             });
 
             return { form };

@@ -4,11 +4,6 @@ import { getDatabaseName, getCollection } from '../mongodb';
 export interface ActivityDocument {
     _id?: ObjectId;
     userId: ObjectId;
-    userInfo: {
-        username: string;
-        email: string;
-        image?: string;
-    };
     title: string;
     description: string;
     location?: string;
@@ -33,11 +28,6 @@ export interface ActivityDocument {
 export interface Activity {
     id: string;
     userId: string;
-    userInfo: {
-        username: string;
-        email: string;
-        image?: string;
-    };
     title: string;
     description: string;
     location?: string;
@@ -74,12 +64,11 @@ export const ActivityService = {
         const collection = await getCollection<ActivityDocument>(DB_NAME, COLLECTION);
         const activities = await collection.find({}).sort({ createdAt: -1 }).toArray();
 
-        const formattedActivities: Activity[] = activities.map(({ _id, userId, userInfo, major, requirements, ...rest }) => {
+        const formattedActivities: Activity[] = activities.map(({ _id, userId, major, requirements, ...rest }) => {
             return {
                 ...rest,
                 id: _id.toString(),
                 userId: userId.toString(),
-                userInfo,
                 major: major ? {
                     id: major._id,
                     title: major.title
@@ -206,11 +195,10 @@ export const ActivityService = {
 
         const activities = await collection.find(query).sort({ createdAt: -1 }).toArray();
 
-        return activities.map(({ _id, userId, userInfo, major, requirements, ...rest }) => ({
+        return activities.map(({ _id, userId, major, requirements, ...rest }) => ({
             ...rest,
             id: _id.toString(),
             userId: userId.toString(),
-            userInfo,
             major: major ? {
                 id: major._id,
                 title: major.title

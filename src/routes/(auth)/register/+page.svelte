@@ -170,7 +170,7 @@
 					</p>
 				{/if}
 
-				<CrButton disabled={isLoadingFormSubmit}>
+				<CrButton variant="primary" disabled={isLoadingFormSubmit}>
 					{#if isLoadingFormSubmit}
 						<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
 					{/if}
