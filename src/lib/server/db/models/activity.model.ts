@@ -8,7 +8,7 @@ export interface ActivityDocument {
     description: string;
     location?: string;
     duration: string;
-    category: 'internship' | 'course' | 'travel' | 'volunteering' | 'other';
+    category: 'internship' | 'course' | 'travel' | 'volunteering' | "research" | "workshop" | "hackathon" | 'other';
     major?: {
         _id: string;
         title: string;
@@ -32,7 +32,7 @@ export interface Activity {
     description: string;
     location?: string;
     duration: string;
-    category: 'internship' | 'course' | 'travel' | 'volunteering' | 'other';
+    category: 'internship' | 'course' | 'travel' | 'volunteering' | "research" | "workshop" | "hackathon" | 'other';
     major?: {
         id: string;
         title: string;

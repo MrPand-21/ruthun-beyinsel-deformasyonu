@@ -124,6 +124,10 @@
 		{ value: "course", label: "Course" },
 		{ value: "travel", label: "Travel" },
 		{ value: "volunteering", label: "Volunteering" },
+		{ value: "competition", label: "Competition" },
+		{ value: "research", label: "Research" },
+		{ value: "workshop", label: "Workshop" },
+		{ value: "hackathon", label: "Hackathon" },
 		{ value: "other", label: "Other" },
 	];
 
@@ -138,8 +142,6 @@
 		newActivity.category = categoryValue as any;
 	});
 
-	// Major selection state
-	let majorSearch = $state("");
 	let majorValue = $state<string | undefined>(undefined);
 
 	$effect(() => {
@@ -156,7 +158,6 @@
 		}
 	});
 
-	// Requirements combobox selection
 	let selectedRequirements = $state<string[]>([]);
 
 	$effect(() => {
@@ -182,14 +183,6 @@
 		return maxDelay - (maxDelay - minDelay) * cubicOut(progress);
 	}
 
-	function parseTags(tagsString: string): string[] {
-		if (!tagsString) return [];
-		return tagsString
-			.split(",")
-			.map((tag) => tag.trim())
-			.filter(Boolean);
-	}
-
 	function toggleFilters() {
 		showFilters = !showFilters;
 	}
@@ -209,15 +202,20 @@
 />
 
 <div class="container mx-auto px-4 py-8">
-	<div class="flex items-center justify-between mb-8">
-		<h1 class="text-3xl font-bold flex-1">Summer Activities</h1>
+	<div class="flex flex-col md:flex-row items-center justify-between mb-4">
+		<h1 class="md:text-4xl text-2xl font-bold flex-1">Summer Activities</h1>
 
-		<div class="flex space-x-2 flex-1/3">
-			<CrButton variant="outline" onclick={toggleFilters}>
-				<Icons.filter class="w-5 h-5 mr-2" />
-				{showFilters ? "Hide Filters" : "Show Filters"}
+		<div class="flex items-center gap-4">
+			<CrButton
+				size="icon"
+				class="text-sm"
+				variant="outline"
+				onclick={toggleFilters}
+			>
+				<Icons.filter class="w-5 h-5" />
 			</CrButton>
 			<CrButton
+				class="text-sm"
 				variant="default"
 				onclick={() => (isAddingActivity = !isAddingActivity)}
 			>
@@ -243,7 +241,7 @@
 
 	{#if showFilters}
 		<div
-			class="bg-white rounded-lg shadow-md p-6 mb-8 transition-all duration-300 transform animate-in fade-in slide-in-from-top-5"
+			class="bg-white/80 backdrop-blur-md backdrop-saturate-150 rounded-lg shadow-lg p-6 mb-8 transition-all duration-300 transform animate-in fade-in slide-in-from-top-5 border border-gray-100/50"
 			style="--tw-enter-duration: 400ms;"
 		>
 			<div class="flex items-center justify-between mb-4">
@@ -266,7 +264,7 @@
 				<div class="space-y-2">
 					<label
 						for="filterCategory"
-						class="block text-sm font-medium text-gray-700 mb-1 flex items-center"
+						class="text-sm font-medium text-gray-700 mb-1 flex items-center"
 					>
 						<Icons.tag class="w-4 h-4 mr-1 text-gray-500" />
 						Category
@@ -282,6 +280,9 @@
 							<option value="course">Course</option>
 							<option value="travel">Travel</option>
 							<option value="volunteering">Volunteering</option>
+							<option value="research">Research</option>
+							<option value="workshop">Workshop</option>
+							<option value="hackathon">Hackathon</option>
 							<option value="other">Other</option>
 						</select>
 						<div
@@ -312,7 +313,7 @@
 				<div class="space-y-2">
 					<label
 						for="filterMajor"
-						class="block text-sm font-medium text-gray-700 mb-1 flex items-center"
+						class="flex text-sm font-medium text-gray-700 mb-1 items-center"
 					>
 						<Icons.graduationCap
 							class="w-4 h-4 mr-1 text-gray-500"
@@ -346,7 +347,7 @@
 				<div class="space-y-2">
 					<label
 						for="filterSearch"
-						class="block text-sm font-medium text-gray-700 mb-1 flex items-center"
+						class="text-sm font-medium text-gray-700 mb-1 flex items-center"
 					>
 						<Icons.search class="w-4 h-4 mr-1 text-gray-500" />
 						Search
@@ -419,7 +420,9 @@
 	{/if}
 
 	{#if isAddingActivity}
-		<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+		<div
+			class="bg-white/80 backdrop-blur-md backdrop-saturate-150 rounded-lg shadow-lg p-6 mb-8 border border-gray-100/50"
+		>
 			<h2 class="text-xl font-semibold mb-4">Add New Summer Activity</h2>
 
 			<form
@@ -470,7 +473,7 @@
 					<div>
 						<label
 							for="category"
-							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+							class="block text-sm font-medium text-gray-700 mb-1"
 							>Category *</label
 						>
 						<Select.Root
@@ -536,7 +539,7 @@
 					<div>
 						<label
 							for="major"
-							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+							class="block text-sm font-medium text-gray-700 mb-1"
 							>Major *</label
 						>
 
