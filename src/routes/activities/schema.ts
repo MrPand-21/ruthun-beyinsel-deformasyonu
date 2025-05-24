@@ -9,12 +9,20 @@ export const formSchema = z.object({
         .optional(),
     duration: z
         .string(),
-
+    year: z
+        .number()
+        .int("Year must be an integer")
+        .min(1900, "Year must be after 1900")
+        .max(2100, "Year must be before 2100")
+        .optional(),
     category: z.enum([
         "internship",
         "course",
         "travel",
         "volunteering",
+        "research",
+        "workshop",
+        "hackathon",
         "other",
     ]),
     major: z.object({
@@ -24,7 +32,34 @@ export const formSchema = z.object({
     requirements: z.array(
         z.object({
             _id: z.string(),
-            title: z.string()
+            title: z.string(),
+            type: z.enum(['language', 'test', 'grade']).optional(),
+            value: z.union([z.string(), z.number()]).optional(),
+            details: z.string().optional()
+        })
+    ).optional(),
+    languageRequirements: z.array(
+        z.object({
+            _id: z.string(),
+            name: z.string(),
+            level: z.string(),
+            details: z.string().optional()
+        })
+    ).optional(),
+    testRequirements: z.array(
+        z.object({
+            _id: z.string(),
+            name: z.string(),
+            score: z.number(),
+            details: z.string().optional()
+        })
+    ).optional(),
+    gradeRequirements: z.array(
+        z.object({
+            _id: z.string(),
+            type: z.string(),
+            value: z.union([z.string(), z.number()]),
+            details: z.string().optional()
         })
     ).optional(),
     cost: z.number().optional(),

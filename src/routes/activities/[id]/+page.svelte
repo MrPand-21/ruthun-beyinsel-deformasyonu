@@ -1,447 +1,488 @@
 <script lang="ts">
-    import { page } from "$app/stores";
-    import Seo from "$lib/components/SEO.svelte";
+    import { fly, fade, scale } from "svelte/transition";
+    import { onMount } from "svelte";
     import { Icons } from "$lib/components/icons";
+    import Seo from "$lib/components/SEO.svelte";
+    import CrButton from "$lib/components/ui/button/CrButton.svelte";
     import { goto } from "$app/navigation";
 
-    // Get activity from the page data
     let { data } = $props();
+    let activity = data.activity;
 
-    let activity = $state(data.activity);
-    let isEditing = $state(false);
-    let isSaving = $state(false);
-    let isDeleting = $state(false);
+    let sections = $state<NodeListOf<Element> | null>(null);
+    let activeSection = $state<null | string>(null);
+    let isLoaded = $state(false);
 
-    // Form data for editing
-    let editForm = $derived({
-        title: activity.title,
-        description: activity.description,
-        location: activity.location || "",
-        startDate: activity.startDate,
-        endDate: activity.endDate,
-        category: activity.category,
-        tags: (activity.tags || []).join(", "),
+    function getCategoryIcon(category: string) {
+        switch (category) {
+            case "internship":
+                return Icons.briefcase;
+            case "course":
+                return Icons.book;
+            case "travel":
+                return Icons.plane;
+            case "volunteering":
+                return Icons.heart;
+            case "research":
+                return Icons.search;
+            case "workshop":
+                return Icons.sliders;
+            case "hackathon":
+                return Icons.code;
+            default:
+                return Icons.star;
+        }
+    }
+
+    function getCategoryColor(category: string) {
+        switch (category) {
+            case "internship":
+                return "from-blue-400 to-blue-600";
+            case "course":
+                return "from-purple-400 to-purple-600";
+            case "travel":
+                return "from-green-400 to-green-600";
+            case "volunteering":
+                return "from-amber-400 to-amber-600";
+            case "research":
+                return "from-indigo-400 to-indigo-600";
+            case "workshop":
+                return "from-red-400 to-red-600";
+            case "hackathon":
+                return "from-cyan-400 to-cyan-600";
+            default:
+                return "from-secondary to-secondary-soft";
+        }
+    }
+
+    function formatDate(date: Date): string {
+        return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+    }
+
+    onMount(() => {
+        sections = document.querySelectorAll(".detail-section");
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        activeSection = entry.target.id;
+                    }
+                });
+            },
+            { threshold: 0.6 },
+        );
+
+        sections.forEach((section) => observer.observe(section));
+
+        // Animation delay
+        setTimeout(() => {
+            isLoaded = true;
+        }, 300);
     });
-
-    // Form validation
-    let errors: { [key: string]: string } = $state({});
-    let successMessage = $state("");
-
-    // Categories with icons
-    const categories = [
-        { value: "internship", label: "Internship", icon: "briefcase" },
-        { value: "course", label: "Course", icon: "book" },
-        { value: "travel", label: "Travel", icon: "plane" },
-        { value: "volunteering", label: "Volunteering", icon: "heart" },
-        { value: "other", label: "Other", icon: "star" },
-    ];
-
-    function getCategoryLabel(value: any) {
-        const category = categories.find((c) => c.value === value);
-        return category ? category.label : "Other";
-    }
-
-    // Handle form submission for updates
-    async function handleUpdate() {
-        // Reset errors
-        errors = {};
-
-        // Basic validation
-        if (!editForm.title) errors["title"] = "Title is required";
-        if (!editForm.description)
-            errors["description"] = "Description is required";
-        if (!editForm.startDate) errors["startDate"] = "Start date is required";
-        if (!editForm.endDate) errors["endDate"] = "End date is required";
-
-        // Check if there are any errors
-        if (Object.keys(errors).length > 0) return;
-
-        try {
-            isSaving = true;
-
-            // Convert tags string to array
-            const tagsArray = editForm.tags
-                ? editForm.tags
-                      .split(",")
-                      .map((tag: any) => tag.trim())
-                      .filter(Boolean)
-                : [];
-
-            // Prepare activity data for update
-            const activityData = {
-                ...editForm,
-                tags: tagsArray,
-            };
-
-            // Send PUT request to update the activity
-            const response = await fetch(`/api/activities/${activity.id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(activityData),
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || "Failed to update activity");
-            }
-
-            // Update local activity data
-            activity = {
-                ...activity,
-                ...result.activity,
-            };
-
-            // Show success message
-            successMessage = "Activity updated successfully!";
-            setTimeout(() => {
-                successMessage = "";
-                isEditing = false;
-            }, 2000);
-        } catch (error: any) {
-            console.error("Error updating activity:", error);
-            errors["general"] = error.message || "Failed to update activity";
-        } finally {
-            isSaving = false;
-        }
-    }
-
-    // Handle activity deletion
-    async function handleDelete() {
-        if (
-            !confirm(
-                "Are you sure you want to delete this activity? This action cannot be undone.",
-            )
-        ) {
-            return;
-        }
-
-        try {
-            isDeleting = true;
-
-            const response = await fetch(`/api/activities/${activity.id}`, {
-                method: "DELETE",
-            });
-
-            if (!response.ok) {
-                const result = await response.json();
-                throw new Error(result.error || "Failed to delete activity");
-            }
-
-            // Redirect to activities list
-            goto("/activities");
-        } catch (error: any) {
-            console.error("Error deleting activity:", error);
-            errors["general"] = error.message || "Failed to delete activity";
-            isDeleting = false;
-        }
-    }
 </script>
 
 <Seo
-    title={activity.title}
-    description={activity.description.substring(0, 160)}
-    keywords={activity.tags ? activity.tags.join(", ") : "summer activity"}
+    title={activity?.title || "Activity Detail"}
+    description={activity?.description ||
+        "Explore the details of this activity"}
 />
 
-<div class="container mx-auto px-4 py-8">
-    <div class="mb-6">
-        <a
-            href="/activities"
-            class="text-blue-600 hover:text-blue-800 flex items-center"
+<main class="relative mx-auto max-w-7xl px-5 pb-20 sm:px-8">
+    <!-- Back button with animation -->
+    <div class="pt-6" in:fade={{ duration: 300, delay: 100 }}>
+        <CrButton
+            variant="ghost"
+            onclick={() => goto("/activities")}
+            class="group mb-6 flex items-center text-fr/80"
         >
-            <Icons.arrowLeft class="w-4 h-4 mr-1" />
-            Back to Activities
-        </a>
+            <Icons.arrowLeft
+                class="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1"
+            />
+            <span>Back to Activities</span>
+        </CrButton>
     </div>
 
-    {#if successMessage}
-        <div
-            class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6"
-            role="alert"
-        >
-            <span class="block sm:inline">{successMessage}</span>
-        </div>
-    {/if}
-
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center">
-                    <span
-                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mr-3"
+    {#if activity && isLoaded}
+        <div class="grid gap-10 md:grid-cols-3">
+            <!-- Left column with hero content -->
+            <div
+                class="md:col-span-2 flex flex-col space-y-8"
+                in:fly={{ y: 20, duration: 400, delay: 200 }}
+            >
+                <!-- Title and category section -->
+                <div
+                    class="rounded-2xl overflow-hidden border border-gray-200/50 dark:border-gray-700/50"
+                >
+                    <div
+                        class="relative h-48 bg-gradient-to-br {getCategoryColor(
+                            activity.category,
+                        )}"
                     >
-                        {#if activity.category === "internship"}
-                            <Icons.briefcase class="w-4 h-4 mr-1" />
-                        {:else if activity.category === "course"}
-                            <Icons.book class="w-4 h-4 mr-1" />
-                        {:else if activity.category === "travel"}
-                            <Icons.plane class="w-4 h-4 mr-1" />
-                        {:else if activity.category === "volunteering"}
-                            <Icons.heart class="w-4 h-4 mr-1" />
-                        {:else}
-                            <Icons.star class="w-4 h-4 mr-1" />
-                        {/if}
-                        {getCategoryLabel(activity.category)}
-                    </span>
-
-                    <span class="text-gray-500 text-sm">
-                        Added on {new Date(
-                            activity.createdAt,
-                        ).toLocaleDateString()}
-                    </span>
-                </div>
-
-                <div class="flex space-x-2">
-                    <button
-                        onclick={() => (isEditing = !isEditing)}
-                        class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
-                        aria-label={isEditing
-                            ? "Cancel editing"
-                            : "Edit activity"}
-                    >
-                        {#if isEditing}
-                            <Icons.x class="w-5 h-5" />
-                        {:else}
-                            <Icons.edit class="w-5 h-5" />
-                        {/if}
-                    </button>
-
-                    <button
-                        onclick={handleDelete}
-                        disabled={isDeleting}
-                        class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
-                        aria-label="Delete activity"
-                    >
-                        {#if isDeleting}
-                            <Icons.loader class="w-5 h-5 animate-spin" />
-                        {:else}
-                            <Icons.trash class="w-5 h-5" />
-                        {/if}
-                    </button>
-                </div>
-            </div>
-
-            {#if isEditing}
-                <!-- Edit Form -->
-                <form onsubmit={handleUpdate} class="space-y-4">
-                    {#if errors["general"]}
                         <div
-                            class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                            role="alert"
+                            class="absolute inset-0 opacity-30 pattern-grid"
+                        ></div>
+
+                        <svelte:component
+                            this={getCategoryIcon(activity.category)}
+                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 opacity-25"
+                        />
+
+                        <div
+                            class="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm text-sm font-medium shadow-sm flex items-center gap-1.5"
                         >
-                            <span class="block sm:inline"
-                                >{errors["general"]}</span
-                            >
-                        </div>
-                    {/if}
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Title -->
-                        <div>
-                            <label
-                                for="title"
-                                class="block text-sm font-medium text-gray-700 mb-1"
-                                >Title *</label
-                            >
-                            <input
-                                type="text"
-                                id="title"
-                                bind:value={editForm.title}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <svelte:component
+                                this={getCategoryIcon(activity.category)}
+                                class="h-4 w-4 text-primary"
                             />
-                            {#if errors["title"]}
-                                <p class="mt-1 text-sm text-red-600">
-                                    {errors["title"]}
-                                </p>
-                            {/if}
-                        </div>
-
-                        <!-- Location -->
-                        <div>
-                            <label
-                                for="location"
-                                class="block text-sm font-medium text-gray-700 mb-1"
-                                >Location</label
-                            >
-                            <input
-                                type="text"
-                                id="location"
-                                bind:value={editForm.location}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <!-- Category -->
-                        <div>
-                            <label
-                                for="category"
-                                class="block text-sm font-medium text-gray-700 mb-1"
-                                >Category *</label
-                            >
-                            <select
-                                id="category"
-                                bind:value={editForm.category}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                {#each categories as category}
-                                    <option value={category.value}
-                                        >{category.label}</option
-                                    >
-                                {/each}
-                            </select>
-                        </div>
-
-                        <!-- Tags -->
-                        <div>
-                            <label
-                                for="tags"
-                                class="block text-sm font-medium text-gray-700 mb-1"
-                                >Tags (comma-separated)</label
-                            >
-                            <input
-                                type="text"
-                                id="tags"
-                                bind:value={editForm.tags}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <!-- Start Date -->
-                        <div>
-                            <label
-                                for="startDate"
-                                class="block text-sm font-medium text-gray-700 mb-1"
-                                >Start Date *</label
-                            >
-                            <input
-                                type="date"
-                                id="startDate"
-                                bind:value={editForm.startDate}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {#if errors["startDate"]}
-                                <p class="mt-1 text-sm text-red-600">
-                                    {errors["startDate"]}
-                                </p>
-                            {/if}
-                        </div>
-
-                        <!-- End Date -->
-                        <div>
-                            <label
-                                for="endDate"
-                                class="block text-sm font-medium text-gray-700 mb-1"
-                                >End Date *</label
-                            >
-                            <input
-                                type="date"
-                                id="endDate"
-                                bind:value={editForm.endDate}
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {#if errors["endDate"]}
-                                <p class="mt-1 text-sm text-red-600">
-                                    {errors["endDate"]}
-                                </p>
-                            {/if}
+                            <span class="capitalize">{activity.category}</span>
                         </div>
                     </div>
 
-                    <!-- Description -->
-                    <div>
-                        <label
-                            for="description"
-                            class="block text-sm font-medium text-gray-700 mb-1"
-                            >Description *</label
-                        >
-                        <textarea
-                            id="description"
-                            bind:value={editForm.description}
-                            rows="6"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        ></textarea>
-                        {#if errors["description"]}
-                            <p class="mt-1 text-sm text-red-600">
-                                {errors["description"]}
-                            </p>
-                        {/if}
+                    <div class="p-6">
+                        <h1 class="text-4xl font-bold mb-4 text-fr">
+                            {activity.title}
+                        </h1>
                     </div>
+                </div>
 
-                    <div class="flex justify-end space-x-3">
-                        <button
-                            type="button"
-                            onclick={() => (isEditing = false)}
-                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                <!-- Details content sections -->
+                <div
+                    id="overview"
+                    class="detail-section p-6 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm transition-all duration-500"
+                    class:shadow-lg={activeSection === "overview"}
+                    in:fade={{ duration: 300, delay: 400 }}
+                >
+                    <h2 class="text-2xl font-bold mb-4 flex items-center">
+                        <Icons.info class="h-6 w-6 mr-2 text-primary" />
+                        Overview
+                    </h2>
+                    <div class="grid gap-6 md:grid-cols-2">
+                        <div
+                            class="flex items-center p-4 rounded-xl bg-primary-50/30 dark:bg-primary-50/5"
                         >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSaving}
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md flex items-center"
-                        >
-                            {#if isSaving}
-                                <Icons.loader
-                                    class="w-4 h-4 mr-2 animate-spin"
-                                />
-                            {/if}
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
-            {:else}
-                <!-- Activity Details View -->
-                <div class="space-y-6">
-                    <h1 class="text-3xl font-bold text-gray-900">
-                        {activity.title}
-                    </h1>
+                            <Icons.calendar
+                                class="h-5 w-5 mr-3 text-secondary"
+                            />
+                            <div>
+                                <p class="text-sm text-fr/70">Year</p>
+                                <p class="font-medium">{activity.year}</p>
+                            </div>
+                        </div>
 
-                    <div class="flex flex-col space-y-3">
+                        <div
+                            class="flex items-center p-4 rounded-xl bg-primary-50/30 dark:bg-primary-50/5"
+                        >
+                            <Icons.clock class="h-5 w-5 mr-3 text-secondary" />
+                            <div>
+                                <p class="text-sm text-fr/70">Duration</p>
+                                <p class="font-medium">{activity.duration}</p>
+                            </div>
+                        </div>
+
                         {#if activity.location}
-                            <div class="flex items-center text-gray-600">
+                            <div
+                                class="flex items-center p-4 rounded-xl bg-primary-50/30 dark:bg-primary-50/5"
+                            >
                                 <Icons.mapPin
-                                    class="w-5 h-5 mr-2 text-gray-500"
+                                    class="h-5 w-5 mr-3 text-secondary"
                                 />
-                                <span>{activity.location}</span>
+                                <div>
+                                    <p class="text-sm text-fr/70">Location</p>
+                                    <p class="font-medium">
+                                        {activity.location}
+                                    </p>
+                                </div>
                             </div>
                         {/if}
 
-                        <div class="flex items-center text-gray-600">
-                            <Icons.calendar
-                                class="w-5 h-5 mr-2 text-gray-500"
-                            />
-                            <span>
-                                {new Date(
-                                    activity.startDate,
-                                ).toLocaleDateString()} - {new Date(
-                                    activity.endDate,
-                                ).toLocaleDateString()}
-                            </span>
-                        </div>
+                        {#if activity.major}
+                            <div
+                                class="flex items-center p-4 rounded-xl bg-primary-50/30 dark:bg-primary-50/5"
+                            >
+                                <Icons.graduationCap
+                                    class="h-5 w-5 mr-3 text-secondary"
+                                />
+                                <div>
+                                    <p class="text-sm text-fr/70">Major</p>
+                                    <p class="font-medium">
+                                        {activity.major.title}
+                                    </p>
+                                </div>
+                            </div>
+                        {/if}
                     </div>
-
-                    <div class="prose max-w-none">
-                        <p class="whitespace-pre-line">
-                            {activity.description}
-                        </p>
-                    </div>
-
-                    {#if activity.tags && activity.tags.length > 0}
-                        <div class="flex flex-wrap gap-2 pt-4">
-                            {#each activity.tags as tag}
-                                <span
-                                    class="inline-block px-3 py-1 text-sm font-medium bg-gray-100 text-gray-800 rounded-full"
-                                >
-                                    {tag}
-                                </span>
-                            {/each}
-                        </div>
-                    {/if}
                 </div>
-            {/if}
+
+                {#if activity.description}
+                    <div
+                        id="details"
+                        class="detail-section p-6 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm transition-all duration-500"
+                        class:shadow-lg={activeSection === "details"}
+                        in:fade={{ duration: 300, delay: 500 }}
+                    >
+                        <h2 class="text-2xl font-bold mb-4 flex items-center">
+                            <Icons.fileText class="h-6 w-6 mr-2 text-primary" />
+                            Detailed Information
+                        </h2>
+                        <div
+                            class="prose prose-sm sm:prose dark:prose-invert max-w-none"
+                        >
+                            <p>{activity.description}</p>
+                        </div>
+                    </div>
+                {/if}
+
+                {#if activity.requirements && activity.requirements.length > 0}
+                    <div
+                        id="requirements"
+                        class="detail-section p-6 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm transition-all duration-500"
+                        class:shadow-lg={activeSection === "requirements"}
+                        in:fade={{ duration: 300, delay: 600 }}
+                    >
+                        <h2 class="text-2xl font-bold mb-4 flex items-center">
+                            <Icons.check class="h-6 w-6 mr-2 text-primary" />
+                            Requirements
+                        </h2>
+                        <ul class="space-y-4">
+                            {#each activity.requirements as req}
+                                <li
+                                    class="flex items-start p-4 rounded-xl bg-primary-50/30 dark:bg-primary-50/5"
+                                >
+                                    <div
+                                        class="mt-0.5 p-1 bg-primary-50 rounded-full text-secondary mr-3"
+                                    >
+                                        <Icons.check class="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">{req.title}</p>
+                                        {#if req.details}
+                                            <p class="text-sm text-fr/70 mt-1">
+                                                {req.details}
+                                            </p>
+                                        {/if}
+                                    </div>
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                {/if}
+
+                {#if activity.languageRequirements && activity.languageRequirements.length > 0}
+                    <div
+                        id="languages"
+                        class="detail-section p-6 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm transition-all duration-500"
+                        class:shadow-lg={activeSection === "languages"}
+                        in:fade={{ duration: 300, delay: 700 }}
+                    >
+                        <h2 class="text-2xl font-bold mb-4 flex items-center">
+                            <Icons.chat class="h-6 w-6 mr-2 text-primary" />
+                            Language Requirements
+                        </h2>
+                        <ul class="space-y-4">
+                            {#each activity.languageRequirements as lang}
+                                <li
+                                    class="flex items-start p-4 rounded-xl bg-primary-50/30 dark:bg-primary-50/5"
+                                >
+                                    <div
+                                        class="mt-0.5 p-1 bg-primary-50 rounded-full text-secondary mr-3"
+                                    >
+                                        <Icons.check class="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">
+                                            {lang.name} - {lang.level}
+                                        </p>
+                                        {#if lang.details}
+                                            <p class="text-sm text-fr/70 mt-1">
+                                                {lang.details}
+                                            </p>
+                                        {/if}
+                                    </div>
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                {/if}
+            </div>
+
+            <!-- Right sidebar -->
+            <div class="md:col-span-1">
+                <div
+                    class="sticky top-24 space-y-6"
+                    in:fly={{ x: 20, duration: 400, delay: 300 }}
+                >
+                    <!-- Creator info card -->
+                    <div
+                        class="p-5 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"
+                    >
+                        <h3 class="text-lg font-semibold mb-4">
+                            Activity Info
+                        </h3>
+                        <div class="flex items-center mb-4">
+                            <div
+                                class="p-3 rounded-full bg-primary-50/30 dark:bg-primary-50/10 mr-3"
+                            >
+                                <Icons.calendar
+                                    class="h-5 w-5 text-secondary"
+                                />
+                            </div>
+                            <div>
+                                <p class="text-sm text-fr/70">Posted on</p>
+                                <p class="font-medium">
+                                    {formatDate(activity.createdAt)}
+                                </p>
+                            </div>
+                        </div>
+
+                        {#if activity.link}
+                            <div class="mb-2">
+                                <a
+                                    href={activity.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="w-full mt-3 flex items-center justify-center px-4 py-2 bg-secondary hover:bg-secondary-soft rounded-lg transition-colors"
+                                >
+                                    <Icons.externalLink class="h-4 w-4 mr-2" />
+                                    Visit Website
+                                </a>
+                            </div>
+                        {/if}
+
+                        <CrButton variant="outline" class="w-full mt-3">
+                            <Icons.share class="h-4 w-4 mr-2" />
+                            Share Activity
+                        </CrButton>
+                    </div>
+
+                    <!-- Navigation card -->
+                    <div
+                        class="p-5 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"
+                        transition:scale={{ duration: 300, delay: 400 }}
+                    >
+                        <h3 class="text-lg font-semibold mb-4">Navigate</h3>
+                        <nav>
+                            <ul class="space-y-2">
+                                <li>
+                                    <a
+                                        href="#overview"
+                                        class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                                        class:text-secondary={activeSection ===
+                                            "overview"}
+                                    >
+                                        <Icons.info class="h-4 w-4 mr-2" />
+                                        Overview
+                                    </a>
+                                </li>
+                                {#if activity.requirements && activity.requirements.length > 0}
+                                    <li>
+                                        <a
+                                            href="#requirements"
+                                            class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                                            class:text-secondary={activeSection ===
+                                                "requirements"}
+                                        >
+                                            <Icons.check class="h-4 w-4 mr-2" />
+                                            Requirements
+                                        </a>
+                                    </li>
+                                {/if}
+                                {#if activity.languageRequirements && activity.languageRequirements.length > 0}
+                                    <li>
+                                        <a
+                                            href="#languages"
+                                            class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                                            class:text-secondary={activeSection ===
+                                                "languages"}
+                                        >
+                                            <Icons.chat class="h-4 w-4 mr-2" />
+                                            Languages
+                                        </a>
+                                    </li>
+                                {/if}
+                            </ul>
+                        </nav>
+                    </div>
+
+                    <!-- Similar activities card -->
+                    <div
+                        class="p-5 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"
+                        transition:scale={{ duration: 300, delay: 500 }}
+                    >
+                        <h3 class="text-lg font-semibold mb-4">Explore More</h3>
+                        <div class="space-y-2">
+                            <CrButton
+                                variant="outline"
+                                class="w-full justify-start"
+                                onclick={() =>
+                                    goto(
+                                        "/activities?category=" +
+                                            activity.category,
+                                    )}
+                            >
+                                <Icons.grid class="h-4 w-4 mr-2" />
+                                More {activity.category} activities
+                            </CrButton>
+
+                            {#if activity.major}
+                                <CrButton
+                                    variant="outline"
+                                    class="w-full justify-start"
+                                    onclick={() =>
+                                        goto(
+                                            "/activities?majorId=" +
+                                                activity.major?.id,
+                                        )}
+                                >
+                                    <Icons.graduationCap class="h-4 w-4 mr-2" />
+                                    More {activity.major.title} activities
+                                </CrButton>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
+    {:else}
+        <!-- Loading state -->
+        <div class="flex flex-col items-center justify-center py-20">
+            <div class="animate-spin">
+                <Icons.spinner class="h-10 w-10 text-secondary" />
+            </div>
+            <p class="mt-4 text-fr/70">Loading activity details...</p>
+        </div>
+    {/if}
+</main>
+
+<style>
+    .pattern-grid {
+        background-image: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0.1) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.1) 1px,
+                transparent 1px
+            );
+        background-size: 20px 20px;
+    }
+
+    /* Smooth scroll behavior */
+    :global(html) {
+        scroll-behavior: smooth;
+    }
+
+    /* Animation for active section */
+    .detail-section.shadow-lg {
+        transform: translateY(-2px);
+        box-shadow:
+            0 10px 15px -3px rgba(0, 0, 0, 0.1),
+            0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+</style>

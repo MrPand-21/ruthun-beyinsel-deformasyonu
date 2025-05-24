@@ -4,15 +4,11 @@
 	import { Icons } from "$lib/components/icons";
 	import ComponentCard from "$lib/components/ui/ComponentCard.svelte";
 	import { Select, Combobox } from "bits-ui";
-	import Palette from "phosphor-svelte/lib/Palette";
 	import CaretUpDown from "phosphor-svelte/lib/CaretUpDown";
 	import CaretDoubleUp from "phosphor-svelte/lib/CaretDoubleUp";
 	import CaretDoubleDown from "phosphor-svelte/lib/CaretDoubleDown";
 	import Check from "phosphor-svelte/lib/Check";
-	import type {
-		Activity,
-		ActivityDocument,
-	} from "$lib/server/db/models/activity.model.js";
+	import type { Activity } from "$lib/server/db/models/activity.model.js";
 	import type { Major } from "$lib/server/db/models/major.model.js";
 	import type { Requirement } from "$lib/server/db/models/requirement.model.js";
 	import { superForm } from "sveltekit-superforms/client";
@@ -22,6 +18,8 @@
 	import { cubicOut } from "svelte/easing";
 	import CrButton from "$lib/components/ui/button/CrButton.svelte";
 	import Card from "$lib/components/ui/Card.svelte";
+	import CrInput from "$lib/components/ui/input/CrInput.svelte";
+	import Dropdown from "$lib/components/ui/dropdown/Dropdown.svelte";
 
 	let { data } = $props();
 
@@ -31,13 +29,11 @@
 	let isAddingActivity = $state(false);
 	let showFilters = $state(false);
 
-	// Filter states
 	let filterCategory = $state<string>("all");
 	let filterMajor = $state<string>("all");
 	let filterSearch = $state<string>("");
 	let filterUserActivities = $state<boolean>(false);
 
-	// Computed filtered activities
 	$effect(() => {
 		let filtered = [...data.activities];
 
@@ -73,17 +69,10 @@
 		activities = filtered;
 	});
 
-	let newMajorName = $state("");
-	let showAddMajorForm = $state(false);
+	let isReqOpen = $state(false);
 	let searchValue = $state("");
 
-	// Requirement combobox state
 	let requirementSearch = $state("");
-	let filteredRequirements = $derived(
-		requirements.filter((req) =>
-			req.title.toLowerCase().includes(requirementSearch.toLowerCase()),
-		),
-	);
 
 	let newActivity = $state({
 		title: "",
@@ -98,7 +87,62 @@
 		goodForWho: "",
 		link: "",
 		tags: "",
+		year: undefined,
 	});
+
+	let newLanguageReq = $state({
+		_id: "",
+
+		name: "",
+		level: "",
+		details: "",
+	});
+
+	let newTestReq = $state({
+		_id: "",
+		name: "",
+		score: 0,
+		details: "",
+	});
+
+	let newGradeReq = $state({
+		_id: "",
+
+		type: "",
+		value: "",
+		details: "",
+	});
+
+	function addLanguageRequirement() {
+		$form.languageRequirements = [
+			...(Array.isArray($form.languageRequirements)
+				? $form.languageRequirements
+				: []),
+			{ ...newLanguageReq },
+		];
+		newLanguageReq = { _id: "", name: "", level: "", details: "" };
+	}
+
+	function addTestRequirement() {
+		$form.testRequirements = [
+			...(Array.isArray($form.testRequirements)
+				? $form.testRequirements
+				: []),
+			{ ...newTestReq },
+		];
+
+		newTestReq = { _id: "", name: "", score: 0, details: "" };
+	}
+
+	function addGradeRequirement() {
+		$form.gradeRequirements = [
+			...(Array.isArray($form.gradeRequirements)
+				? $form.gradeRequirements
+				: []),
+			{ ...newGradeReq },
+		];
+		newGradeReq = { _id: "", type: "", value: "", details: "" };
+	}
 
 	const formData = superForm(data.form, {
 		taintedMessage: false, // Disable unsaved changes warning
@@ -362,7 +406,7 @@
 								class="w-10 h-6 bg-gray-300 dark:bg-gray-700 rounded-full peer-checked:bg-blue-500 transition-colors duration-300"
 							></div>
 							<div
-								class="absolute left-1 top-1 w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-4"
+								class="absolute bg-amber-400 left-1 top-1 w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-4"
 							></div>
 						</div>
 						<span class="text-sm text-gray-700"
@@ -375,7 +419,7 @@
 			<div class="mt-4 flex items-center text-sm text-gray-600">
 				<Icons.filter class="w-4 h-4 mr-1.5 text-blue-500" />
 				<span class="font-medium"
-					>Showing {" " + activities.length}</span
+					>Showing {" " + activities.length + " "}</span
 				>
 				of {data.activities.length} activities
 				{#if activities.length !== data.activities.length}
@@ -630,6 +674,31 @@
 
 					<div>
 						<label
+							for="year"
+							class="block text-sm font-medium text-gray-700 mb-1"
+							>Year</label
+						>
+						<input
+							type="number"
+							id="year"
+							name="year"
+							bind:value={$form.year}
+							min="1900"
+							max="2100"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							placeholder="Academic year (optional)"
+						/>
+						{#if $errors.year}
+							<p class="mt-1 text-sm text-red-600">
+								{$errors.year}
+							</p>
+						{/if}
+					</div>
+				</div>
+
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div>
+						<label
 							for="recommended"
 							class="block text-sm font-medium text-gray-700 mb-1"
 							>Recommended Rating (1-5)</label
@@ -647,7 +716,6 @@
 					</div>
 				</div>
 
-				<!-- Good For Who and Link -->
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
 						<label
@@ -683,15 +751,253 @@
 				</div>
 
 				<div>
-					<!-- <label
-						for="requirements"
-						class="block text-sm font-medium text-gray-700 mb-1"
+					<Dropdown
+						className=""
+						title="Requirements"
+						bind:isOpen={isReqOpen}
+						onClose={() => (isReqOpen = false)}
 					>
-						Requirements
-					</label> -->
+						<div class="mb-4 p-4 bg-gray-50 border rounded-md">
+							<h3
+								class="text-md font-semibold mb-3 flex items-center text-blue-600"
+							>
+								<Icons.chat class="w-5 h-5 mr-2" />
+								Language Requirements
+							</h3>
+
+							{#if $form.languageRequirements && $form.languageRequirements.length > 0}
+								<div class="space-y-2 mb-3">
+									{#each $form.languageRequirements as langReq, index}
+										<div
+											class="flex items-center justify-between p-2 border rounded-md bg-white"
+										>
+											<div>
+												<span class="font-medium"
+													>{langReq.name}</span
+												>:
+												<span class="text-gray-600"
+													>{langReq.level}</span
+												>
+												{#if langReq.details}
+													<p
+														class="text-xs text-gray-500"
+													>
+														{langReq.details}
+													</p>
+												{/if}
+											</div>
+											<button
+												type="button"
+												class="text-red-500 hover:text-red-700"
+												onclick={() => {
+													$form.languageRequirements =
+														$form.languageRequirements?.filter(
+															(_, i) =>
+																i !== index,
+														);
+												}}
+											>
+												<Icons.trash class="w-4 h-4" />
+											</button>
+										</div>
+									{/each}
+								</div>
+							{/if}
+
+							<div class="grid grid-cols-2 gap-2">
+								<input
+									type="text"
+									placeholder="Language name (e.g., English)"
+									class="px-3 py-2 border rounded-md"
+									bind:value={newLanguageReq.name}
+								/>
+								<input
+									type="text"
+									placeholder="Level (e.g., B2, Fluent)"
+									class="px-3 py-2 border rounded-md"
+									bind:value={newLanguageReq.level}
+								/>
+								<input
+									type="text"
+									placeholder="Additional details (optional)"
+									class="px-3 py-2 border rounded-md col-span-2"
+									bind:value={newLanguageReq.details}
+								/>
+							</div>
+
+							<button
+								type="button"
+								class="mt-2 flex items-center text-blue-600 hover:text-blue-800"
+								onclick={addLanguageRequirement}
+								disabled={!newLanguageReq.name ||
+									!newLanguageReq.level}
+							>
+								<Icons.plus class="w-4 h-4 mr-1" />
+								Add Language Requirement
+							</button>
+						</div>
+
+						<div class="mb-4 p-4 bg-gray-50 border rounded-md">
+							<h3
+								class="text-md font-semibold mb-3 flex items-center text-green-600"
+							>
+								<Icons.fileText class="w-5 h-5 mr-2" />
+								Test Requirements
+							</h3>
+
+							{#if $form.testRequirements && $form.testRequirements.length > 0}
+								<div class="space-y-2 mb-3">
+									{#each $form.testRequirements as testReq, index}
+										<div
+											class="flex items-center justify-between p-2 border rounded-md bg-white"
+										>
+											<div>
+												<span class="font-medium"
+													>{testReq.name}</span
+												>:
+												<span class="text-gray-600"
+													>Min. score {testReq.score}</span
+												>
+												{#if testReq.details}
+													<p
+														class="text-xs text-gray-500"
+													>
+														{testReq.details}
+													</p>
+												{/if}
+											</div>
+											<button
+												type="button"
+												class="text-red-500 hover:text-red-700"
+												onclick={() => {
+													$form.testRequirements =
+														$form.testRequirements?.filter(
+															(_, i) =>
+																i !== index,
+														);
+												}}
+											>
+												<Icons.trash class="w-4 h-4" />
+											</button>
+										</div>
+									{/each}
+								</div>
+							{/if}
+
+							<div class="grid grid-cols-2 gap-2">
+								<input
+									type="text"
+									placeholder="Test name (e.g., TOEFL, GRE)"
+									class="px-3 py-2 border rounded-md"
+									bind:value={newTestReq.name}
+								/>
+								<input
+									type="number"
+									placeholder="Minimum score"
+									class="px-3 py-2 border rounded-md"
+									bind:value={newTestReq.score}
+								/>
+								<input
+									type="text"
+									placeholder="Additional details (optional)"
+									class="px-3 py-2 border rounded-md col-span-2"
+									bind:value={newTestReq.details}
+								/>
+							</div>
+
+							<button
+								type="button"
+								class="mt-2 flex items-center text-green-600 hover:text-green-800"
+								onclick={addTestRequirement}
+								disabled={!newTestReq.name || !newTestReq.score}
+							>
+								<Icons.plus class="w-4 h-4 mr-1" />
+								Add Test Requirement
+							</button>
+						</div>
+
+						<div class="mb-4 p-4 bg-gray-50 border rounded-md">
+							<h3
+								class="text-md font-semibold mb-3 flex items-center text-purple-600"
+							>
+								<Icons.barChart class="w-5 h-5 mr-2" />
+								Grade Requirements
+							</h3>
+
+							{#if $form.gradeRequirements && $form.gradeRequirements.length > 0}
+								<div class="space-y-2 mb-3">
+									{#each $form.gradeRequirements as gradeReq, index}
+										<div
+											class="flex items-center justify-between p-2 border rounded-md bg-white"
+										>
+											<div>
+												<span class="font-medium"
+													>{gradeReq.type}</span
+												>:
+												<span class="text-gray-600"
+													>{gradeReq.value}</span
+												>
+												{#if gradeReq.details}
+													<p
+														class="text-xs text-gray-500"
+													>
+														{gradeReq.details}
+													</p>
+												{/if}
+											</div>
+											<button
+												type="button"
+												class="text-red-500 hover:text-red-700"
+												onclick={() => {
+													$form.gradeRequirements =
+														$form.gradeRequirements?.filter(
+															(_, i) =>
+																i !== index,
+														);
+												}}
+											>
+												<Icons.trash class="w-4 h-4" />
+											</button>
+										</div>
+									{/each}
+								</div>
+							{/if}
+
+							<div class="grid grid-cols-2 gap-2">
+								<input
+									type="text"
+									placeholder="Type (e.g., GPA, Class Rank)"
+									class="px-3 py-2 border rounded-md"
+									bind:value={newGradeReq.type}
+								/>
+								<input
+									type="text"
+									placeholder="Value (e.g., 3.5, Top 10%)"
+									class="px-3 py-2 border rounded-md"
+									bind:value={newGradeReq.value}
+								/>
+								<input
+									type="text"
+									placeholder="Additional details (optional)"
+									class="px-3 py-2 border rounded-md col-span-2"
+									bind:value={newGradeReq.details}
+								/>
+							</div>
+
+							<button
+								type="button"
+								class="mt-2 flex items-center text-purple-600 hover:text-purple-800"
+								onclick={addGradeRequirement}
+								disabled={!newGradeReq.type ||
+									!newGradeReq.value}
+							>
+								<Icons.plus class="w-4 h-4 mr-1" />
+								Add Grade Requirement
+							</button>
+						</div>
+					</Dropdown>
 				</div>
 
-				<!-- Description -->
 				<div>
 					<label
 						for="description"
@@ -740,118 +1046,231 @@
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 			{#each activities as activity}
-				<ComponentCard title={activity.title}>
-					<div class="px-2">
-						<div class="flex items-center justify-between mb-3">
-							<span
-								class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
-							>
-								{#if activity.category === "internship"}
-									<Icons.briefcase class="w-4 h-4 mr-1" />
-								{:else if activity.category === "course"}
-									<Icons.book class="w-4 h-4 mr-1" />
-								{:else if activity.category === "travel"}
-									<Icons.plane class="w-4 h-4 mr-1" />
-								{:else if activity.category === "volunteering"}
-									<Icons.heart class="w-4 h-4 mr-1" />
-								{:else}
-									<Icons.star class="w-4 h-4 mr-1" />
-								{/if}
-								{activity?.category &&
-									activity.category.charAt(0).toUpperCase() +
-										activity.category.slice(1)}
-							</span>
-
-							<a
-								href={`/activities/${activity.id}/edit`}
-								class="text-gray-500 hover:text-gray-700"
-							>
-								<Icons.edit class="w-5 h-5" />
-							</a>
-						</div>
-
-						{#if activity.location}
-							<div class="flex items-center text-gray-500 mb-2">
-								<Icons.mapPin class="w-4 h-4 mr-2" />
-								<span>{activity.location}</span>
-							</div>
-						{/if}
-
-						<div class="flex items-center text-gray-500 mb-2">
-							<Icons.clock class="w-4 h-4 mr-2" />
-							<span>{activity.duration}</span>
-						</div>
-
-						{#if activity.major}
-							<div class="flex items-center text-gray-500 mb-2">
-								<Icons.graduationCap class="w-4 h-4 mr-2" />
-								<span>{activity.major.title}</span>
-							</div>
-						{/if}
-
-						{#if activity.cost}
-							<div class="flex items-center text-gray-500 mb-2">
-								<Icons.dollarSign class="w-4 h-4 mr-2" />
-								<span>${activity.cost}</span>
-							</div>
-						{/if}
-
-						{#if activity.recommended}
-							<div class="flex items-center text-gray-500 mb-2">
-								<Icons.star class="w-4 h-4 mr-2" />
-								<span>{activity.recommended}/5</span>
-							</div>
-						{/if}
-
-						<p class="text-gray-600 mb-4 line-clamp-3">
-							{activity.description}
-						</p>
-
-						{#if activity.requirements && activity.requirements.length > 0}
-							<div class="mb-3">
-								<h4
-									class="text-sm font-semibold text-gray-700 mb-1"
+				<a href={`/activities/${activity.id}`} class="no-underline">
+					<ComponentCard title={activity.title}>
+						<div class="px-2">
+							<div class="flex items-center justify-between mb-3">
+								<span
+									class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
 								>
-									Requirements:
-								</h4>
-								<ul
-									class="text-sm text-gray-600 pl-5 list-disc"
-								>
-									{#each activity.requirements as req}
-										<li>{req.title}</li>
-									{/each}
-								</ul>
-							</div>
-						{/if}
+									{#if activity.category === "internship"}
+										<Icons.briefcase class="w-4 h-4 mr-1" />
+									{:else if activity.category === "course"}
+										<Icons.book class="w-4 h-4 mr-1" />
+									{:else if activity.category === "travel"}
+										<Icons.plane class="w-4 h-4 mr-1" />
+									{:else if activity.category === "volunteering"}
+										<Icons.heart class="w-4 h-4 mr-1" />
+									{:else}
+										<Icons.star class="w-4 h-4 mr-1" />
+									{/if}
+									{activity?.category &&
+										activity.category
+											.charAt(0)
+											.toUpperCase() +
+											activity.category.slice(1)}
+								</span>
 
-						{#if activity.goodForWho}
-							<div class="mb-3">
-								<h4
-									class="text-sm font-semibold text-gray-700 mb-1"
-								>
-									Good for:
-								</h4>
-								<p class="text-sm text-gray-600">
-									{activity.goodForWho}
-								</p>
-							</div>
-						{/if}
-
-						{#if activity.link}
-							<div class="mb-3">
 								<a
-									href={activity.link}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="inline-flex items-center text-blue-600 hover:text-blue-800"
+									href={`/activities/${activity.id}/edit`}
+									class="text-gray-500 hover:text-gray-700"
 								>
-									<Icons.externalLink class="w-4 h-4 mr-1" />
-									Visit Website
+									<Icons.edit class="w-5 h-5" />
 								</a>
 							</div>
-						{/if}
-					</div>
-				</ComponentCard>
+
+							{#if activity.location}
+								<div
+									class="flex items-center text-gray-500 mb-2"
+								>
+									<Icons.mapPin class="w-4 h-4 mr-2" />
+									<span>{activity.location}</span>
+								</div>
+							{/if}
+
+							<div class="flex items-center text-gray-500 mb-2">
+								<Icons.clock class="w-4 h-4 mr-2" />
+								<span>{activity.duration}</span>
+							</div>
+
+							{#if activity.year}
+								<div
+									class="flex items-center text-gray-500 mb-2"
+								>
+									<Icons.calendar class="w-4 h-4 mr-2" />
+									<span>Year: {activity.year}</span>
+								</div>
+							{/if}
+
+							{#if activity.major}
+								<div
+									class="flex items-center text-gray-500 mb-2"
+								>
+									<Icons.graduationCap class="w-4 h-4 mr-2" />
+									<span>{activity.major.title}</span>
+								</div>
+							{/if}
+
+							{#if activity.cost}
+								<div
+									class="flex items-center text-gray-500 mb-2"
+								>
+									<Icons.dollarSign class="w-4 h-4 mr-2" />
+									<span>${activity.cost}</span>
+								</div>
+							{/if}
+
+							{#if activity.recommended}
+								<div
+									class="flex items-center text-gray-500 mb-2"
+								>
+									<Icons.star class="w-4 h-4 mr-2" />
+									<span>{activity.recommended}/5</span>
+								</div>
+							{/if}
+
+							<p class="text-gray-600 mb-4 line-clamp-3">
+								{activity.description}
+							</p>
+
+							{#if activity.requirements && activity.requirements.length > 0}
+								<div class="mb-3">
+									<h4
+										class="text-sm font-semibold text-gray-700 mb-1"
+									>
+										Requirements:
+									</h4>
+									<ul
+										class="text-sm text-gray-600 pl-5 list-disc"
+									>
+										{#each activity.requirements as req}
+											<li>{req.title}</li>
+										{/each}
+									</ul>
+								</div>
+							{/if}
+
+							{#if activity.languageRequirements && activity.languageRequirements.length > 0}
+								<div class="mb-3">
+									<h4
+										class="text-sm font-semibold text-gray-700 mb-1 flex items-center"
+									>
+										<Icons.chat
+											class="w-3.5 h-3.5 mr-1 text-blue-600"
+										/>
+										Language Requirements:
+									</h4>
+									<ul
+										class="text-sm text-gray-600 pl-5 list-disc"
+									>
+										{#each activity.languageRequirements as req}
+											<li>
+												<span class="font-medium"
+													>{req.name}</span
+												>: {req.level}
+												{#if req.details}
+													<span
+														class="text-xs text-gray-500 block"
+														>{req.details}</span
+													>
+												{/if}
+											</li>
+										{/each}
+									</ul>
+								</div>
+							{/if}
+
+							{#if activity.testRequirements && activity.testRequirements.length > 0}
+								<div class="mb-3">
+									<h4
+										class="text-sm font-semibold text-gray-700 mb-1 flex items-center"
+									>
+										<Icons.fileText
+											class="w-3.5 h-3.5 mr-1 text-green-600"
+										/>
+										Test Requirements:
+									</h4>
+									<ul
+										class="text-sm text-gray-600 pl-5 list-disc"
+									>
+										{#each activity.testRequirements as req}
+											<li>
+												<span class="font-medium"
+													>{req.name}</span
+												>: Min. score {req.score}
+												{#if req.details}
+													<span
+														class="text-xs text-gray-500 block"
+														>{req.details}</span
+													>
+												{/if}
+											</li>
+										{/each}
+									</ul>
+								</div>
+							{/if}
+
+							{#if activity.gradeRequirements && activity.gradeRequirements.length > 0}
+								<div class="mb-3">
+									<h4
+										class="text-sm font-semibold text-gray-700 mb-1 flex items-center"
+									>
+										<Icons.barChart
+											class="w-3.5 h-3.5 mr-1 text-purple-600"
+										/>
+										Grade Requirements:
+									</h4>
+									<ul
+										class="text-sm text-gray-600 pl-5 list-disc"
+									>
+										{#each activity.gradeRequirements as req}
+											<li>
+												<span class="font-medium"
+													>{req.type}</span
+												>: {req.value}
+												{#if req.details}
+													<span
+														class="text-xs text-gray-500 block"
+														>{req.details}</span
+													>
+												{/if}
+											</li>
+										{/each}
+									</ul>
+								</div>
+							{/if}
+
+							{#if activity.goodForWho}
+								<div class="mb-3">
+									<h4
+										class="text-sm font-semibold text-gray-700 mb-1"
+									>
+										Good for:
+									</h4>
+									<p class="text-sm text-gray-600">
+										{activity.goodForWho}
+									</p>
+								</div>
+							{/if}
+
+							{#if activity.link}
+								<div class="mb-3">
+									<a
+										href={activity.link}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="inline-flex items-center text-blue-600 hover:text-blue-800"
+									>
+										<Icons.externalLink
+											class="w-4 h-4 mr-1"
+										/>
+										Visit Website
+									</a>
+								</div>
+							{/if}
+						</div>
+					</ComponentCard>
+				</a>
 			{/each}
 		</div>
 	{/if}

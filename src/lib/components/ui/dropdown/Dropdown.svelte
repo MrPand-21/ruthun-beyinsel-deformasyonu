@@ -2,7 +2,13 @@
     import type { Nullable } from "$lib/types";
     import { onMount } from "svelte";
 
-    const { isOpen, onClose, className, children } = $props();
+    let {
+        isOpen = $bindable(),
+        onClose,
+        className,
+        title,
+        children,
+    } = $props();
 
     let dropdownRef: Nullable<HTMLDivElement> = $state(null);
 
@@ -24,10 +30,21 @@
     });
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<h3
+    onclick={() => {
+        isOpen = !isOpen;
+    }}
+    class="p-2 text-lg font-semibold"
+>
+    {title}
+</h3>
 {#if isOpen}
     <div
         bind:this={dropdownRef}
-        class="absolute z-40 right-0 mt-2 rounded-xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark {className}"
+        aria-invalid={isOpen}
+        class="rounded-xl border border-gray-200 shadow-theme-lg dark:border-gray-800 {className}"
     >
         {@render children()}
     </div>

@@ -54,7 +54,11 @@ import {
 	RefreshCw,
 	Tag,
 	Sliders,
-	Grid
+	Grid,
+	FileText,
+	BarChart,
+	Code,
+	InfoIcon
 } from 'lucide-svelte';
 import Google from './google.svelte';
 
@@ -128,10 +132,13 @@ export const Icons = {
 	search: Search,
 	clock: Clock,
 	filter: Filter,
-
 	arrowDown: ArrowDown,
 	arrowUp: ArrowUp,
 	lock: Lock,
+	fileText: FileText,
+	barChart: BarChart,
+	code: Code,
+	info: InfoIcon
 };
 
 export type IconType = any;

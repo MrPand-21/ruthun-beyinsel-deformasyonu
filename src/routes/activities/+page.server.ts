@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { ActivityService, type Activity } from '$lib/server/db/models/activity.model';
 import { MajorService } from '$lib/server/db/models/major.model';
 import { RequirementService } from '$lib/server/db/models/requirement.model';
+import { RequirementTypeService } from '$lib/server/db/models/requirement.type.model';
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms/server';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -15,14 +16,13 @@ export const load = async (event) => {
         redirect(303, '/login?callbackUrl=/activities');
     }
 
-    const activities: Activity[] = await ActivityService.findAll();
-    const majors = await MajorService.findAll();
-    const requirements = await RequirementService.findAll();
-
     return {
-        activities,
-        majors,
-        requirements,
+        activities: await ActivityService.findAll(),
+        majors: await MajorService.findAll(),
+        requirements: await RequirementService.findAll(),
+        languageRequirements: await RequirementTypeService.findLanguageRequirements(),
+        testRequirements: await RequirementTypeService.findTestRequirements(),
+        gradeRequirements: await RequirementTypeService.findGradeRequirements(),
         session: {
             id: session.id.toString(),
             userId: session.userId.toString()
@@ -46,9 +46,13 @@ export const actions: Actions = {
             description,
             location,
             duration,
+            year,
             category,
             major,
             requirements,
+            languageRequirements,
+            testRequirements,
+            gradeRequirements,
             cost,
             recommended,
             goodForWho,
@@ -66,9 +70,13 @@ export const actions: Actions = {
                 description,
                 location,
                 duration,
+                year,
                 category,
                 major,
                 requirements,
+                languageRequirements,
+                testRequirements,
+                gradeRequirements,
                 cost,
                 recommended,
                 goodForWho,
