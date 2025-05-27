@@ -302,24 +302,6 @@
 />
 
 <div class="container mx-auto px-4 py-8">
-	<div class="flex flex-col md:flex-row items-center justify-between mb-6">
-		<div class="flex items-center gap-4">
-			<CrButton
-				class="text-sm"
-				variant="default"
-				onclick={() => (isAddingActivity = !isAddingActivity)}
-			>
-				{#if isAddingActivity}
-					<Icons.x class="w-5 h-5 mr-2" />
-					Cancel
-				{:else}
-					<Icons.plus class="w-5 h-5 mr-2" />
-					Add Activity
-				{/if}
-			</CrButton>
-		</div>
-	</div>
-
 	{#if successMessage}
 		<div
 			class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 shadow-sm transform transition-all duration-300 animate-in fade-in slide-in-from-top"
@@ -378,9 +360,10 @@
 				</svg>
 			</button>
 			<button
-				class="p-2 rounded-lg transition-all {layoutType === 'list'
-					? 'bg-white dark:bg-gray-700 shadow-sm'
-					: 'hover:bg-white/50 dark:hover:bg-gray-700/50'}"
+				class="p-2 rounded-md hover:cursor-pointer transition-all {layoutType ===
+				'list'
+					? ' bg-slate-50 dark:bg-gray-700/60'
+					: ' hover:bg-teal-500/80 dark:hover:bg-gray-700/50'}"
 				title="List layout"
 				onclick={() => setLayout("list")}
 			>
@@ -400,9 +383,10 @@
 				</svg>
 			</button>
 			<button
-				class="p-2 rounded-lg transition-all {layoutType === 'cards'
-					? 'bg-white dark:bg-gray-700 shadow-sm'
-					: 'hover:bg-white/50 dark:hover:bg-gray-700/50'}"
+				class="p-2 rounded-md hover:cursor-pointer transition-all {layoutType ===
+				'cards'
+					? ' bg-slate-50 dark:bg-gray-700/60'
+					: ' hover:bg-teal-500/80 dark:hover:bg-gray-700/50'}"
 				title="Cards layout"
 				onclick={() => setLayout("cards")}
 			>
@@ -422,9 +406,10 @@
 				</svg>
 			</button>
 			<button
-				class="p-2 rounded-lg transition-all {layoutType === 'book'
-					? 'bg-white dark:bg-gray-700 shadow-sm'
-					: 'hover:bg-white/50 dark:hover:bg-gray-700/50'}"
+				class="p-2 rounded-md hover:cursor-pointer transition-all {layoutType ===
+				'book'
+					? ' bg-slate-50 dark:bg-gray-700/60'
+					: ' hover:bg-teal-500/80 dark:hover:bg-gray-700/50'}"
 				title="Book layout"
 				onclick={() => setLayout("book")}
 			>
@@ -446,99 +431,114 @@
 		</div>
 	</div>
 
-	<!-- Advanced Filters Card -->
 	<Card className="mb-6 flex flex-col gap-4">
-		<div class="flex items-center justify-between mb-4">
+		<div class="flex items-center justify-between" onclick={toggleFilters}>
 			<h2
 				class="text-lg font-semibold text-gray-800 dark:text-gray-400 flex items-center"
 			>
 				<Icons.sliders class="w-5 h-5 mr-2 text-blue-500" />
 				Advanced Filters
 			</h2>
-			<button
-				onclick={clearFilters}
-				class="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200 flex items-center"
-			>
-				<Icons.refresh class="w-4 h-4 mr-1" />
-				Reset Filters
-			</button>
+			<div class="flex items-center gap-2">
+				<button
+					onclick={clearFilters}
+					class="text-blue-600 hover:cursor-pointer hover:text-blue-800 text-sm font-medium transition-colors duration-200 flex items-center"
+				>
+					<Icons.refresh class="w-4 h-4 mr-1" />
+					Reset Filters
+				</button>
+				<button
+					class="text-blue-600 hover:cursor-pointer hover:text-blue-800 text-sm font-medium transition-colors duration-200 flex items-center"
+					onclick={() => (isAddingActivity = !isAddingActivity)}
+				>
+					{#if isAddingActivity}
+						<Icons.x class="w-5 h-5 mr-2" />
+						Cancel
+					{:else}
+						<Icons.plus class="w-5 h-5 mr-2" />
+						Add Activity
+					{/if}
+				</button>
+			</div>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-			<div class="relative">
-				<select
-					id="filterMajor"
-					bind:value={filterMajor}
-					class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
-				>
-					<option value="all">All Majors</option>
-					{#each majors as major}
-						<option value={major.id}>{major.title}</option>
-					{/each}
-				</select>
-				<div
-					class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
-				>
-					<Icons.graduationCap class="w-5 h-5" />
-				</div>
-				<div
-					class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
-				>
-					<Icons.chevronsUpDown class="w-4 h-4" />
-				</div>
-			</div>
-
-			<div class="relative">
-				<input
-					type="text"
-					id="filterSearch"
-					placeholder="Search activities..."
-					bind:value={filterSearch}
-					class="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
-				/>
-				<div
-					class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
-				>
-					<Icons.search class="w-5 h-5" />
-				</div>
-				{#if filterSearch}
-					<button
-						class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-						onclick={() => (filterSearch = "")}
+		{#if showFilters}
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+				<div class="relative">
+					<select
+						id="filterMajor"
+						bind:value={filterMajor}
+						class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
 					>
-						<Icons.x class="w-4 h-4" />
-					</button>
+						<option value="all">All Majors</option>
+						{#each majors as major}
+							<option value={major.id}>{major.title}</option>
+						{/each}
+					</select>
+					<div
+						class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
+					>
+						<Icons.graduationCap class="w-5 h-5" />
+					</div>
+					<div
+						class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
+					>
+						<Icons.chevronsUpDown class="w-4 h-4" />
+					</div>
+				</div>
+
+				<div class="relative">
+					<input
+						type="text"
+						id="filterSearch"
+						placeholder="Search activities..."
+						bind:value={filterSearch}
+						class="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
+					/>
+					<div
+						class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
+					>
+						<Icons.search class="w-5 h-5" />
+					</div>
+					{#if filterSearch}
+						<button
+							class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+							onclick={() => (filterSearch = "")}
+						>
+							<Icons.x class="w-4 h-4" />
+						</button>
+					{/if}
+				</div>
+
+				{#if data?.session?.userId}
+					<div class="mt-4 pl-1 md:mt-0 flex items-center">
+						<label class="inline-flex items-center cursor-pointer">
+							<div
+								class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
+							>
+								<input
+									type="checkbox"
+									id="filterUserActivities"
+									bind:checked={filterUserActivities}
+									class="opacity-0 absolute w-0 h-0 peer"
+								/>
+								<div
+									class="w-10 h-6 bg-gray-300 dark:bg-gray-700 rounded-full peer-checked:bg-blue-500 transition-colors duration-300"
+								></div>
+								<div
+									class="absolute bg-amber-400 left-1 top-1 w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-4"
+								></div>
+							</div>
+							<span class="text-sm text-gray-700"
+								>My activities only</span
+							>
+						</label>
+					</div>
 				{/if}
 			</div>
+		{/if}
 
-			{#if data?.session?.userId}
-				<div class="mt-4 pl-1 md:mt-0 flex items-center">
-					<label class="inline-flex items-center cursor-pointer">
-						<div
-							class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
-						>
-							<input
-								type="checkbox"
-								id="filterUserActivities"
-								bind:checked={filterUserActivities}
-								class="opacity-0 absolute w-0 h-0 peer"
-							/>
-							<div
-								class="w-10 h-6 bg-gray-300 dark:bg-gray-700 rounded-full peer-checked:bg-blue-500 transition-colors duration-300"
-							></div>
-							<div
-								class="absolute bg-amber-400 left-1 top-1 w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-4"
-							></div>
-						</div>
-						<span class="text-sm text-gray-700"
-							>My activities only</span
-						>
-					</label>
-				</div>
-			{/if}
-		</div>
-
-		<div class="mt-4 flex items-center text-sm text-gray-600">
+		<div class="flex items-center text-sm text-gray-600">
 			<Icons.filter class="w-4 h-4 mr-1.5 text-blue-500" />
 			<span class="font-medium"
 				>Showing {" " + activities.length + " "}</span
