@@ -93,28 +93,12 @@
 />
 
 <main class="relative mx-auto max-w-7xl px-5 pb-20 sm:px-8">
-    <!-- Back button with animation -->
-    <div class="pt-6" in:fade={{ duration: 300, delay: 100 }}>
-        <CrButton
-            variant="ghost"
-            onclick={() => goto("/activities")}
-            class="group mb-6 flex items-center text-fr/80"
-        >
-            <Icons.arrowLeft
-                class="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1"
-            />
-            <span>Back to Activities</span>
-        </CrButton>
-    </div>
-
     {#if activity && isLoaded}
         <div class="grid gap-10 md:grid-cols-3">
-            <!-- Left column with hero content -->
             <div
                 class="md:col-span-2 flex flex-col space-y-8"
                 in:fly={{ y: 20, duration: 400, delay: 200 }}
             >
-                <!-- Title and category section -->
                 <div
                     class="rounded-2xl overflow-hidden border border-gray-200/50 dark:border-gray-700/50"
                 >

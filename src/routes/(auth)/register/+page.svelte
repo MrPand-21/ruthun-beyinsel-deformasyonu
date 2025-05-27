@@ -37,7 +37,6 @@
 		onSubmit: ({ formData }) => {
 			errorResponse = null;
 			isLoadingFormSubmit = true;
-			console.log(formData);
 		},
 		onError: () => {
 			isLoadingFormSubmit = false;

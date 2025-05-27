@@ -210,7 +210,6 @@ export const ActivityService = {
         const collection = await getCollection<ActivityDocument>(DB_NAME, COLLECTION);
         const query: any = { _id: new ObjectId(id) };
         const activity = await collection.findOne(query)
-        console.log('Activity found:', activity);
         if (!activity) return null;
 
         return formatActivityDocument(activity);

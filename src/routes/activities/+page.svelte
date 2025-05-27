@@ -1,4 +1,3 @@
-<!-- svelte-ignore a11y_click_events_have_key_events -->
 <script lang="ts">
 	import Seo from "$lib/components/SEO.svelte";
 	import { Icons } from "$lib/components/icons";
@@ -20,6 +19,7 @@
 	import Card from "$lib/components/ui/Card.svelte";
 	import CrInput from "$lib/components/ui/input/CrInput.svelte";
 	import Dropdown from "$lib/components/ui/dropdown/Dropdown.svelte";
+	import { fly, fade } from "svelte/transition";
 
 	let { data } = $props();
 
@@ -27,12 +27,68 @@
 	let majors = $state<Major[]>(data.majors || []);
 	let requirements = $state<Requirement[]>(data.requirements || []);
 	let isAddingActivity = $state(false);
-	let showFilters = $state(false);
+	let showFilters = $state(true); // Show filters by default
+
+	// Layout switcher state
+	let layoutType = $state("grid"); // Options: grid, list, cards, book
+
+	// Layout options
+	const layoutOptions = [
+		{ id: "grid", icon: "grid", label: "Grid layout" },
+		{ id: "list", icon: "list", label: "List layout" },
+		{ id: "cards", icon: "masonry", label: "Card layout" },
+		{ id: "book", icon: "book", label: "Book layout" },
+	];
 
 	let filterCategory = $state<string>("all");
 	let filterMajor = $state<string>("all");
 	let filterSearch = $state<string>("");
 	let filterUserActivities = $state<boolean>(false);
+
+	// Category quick filters
+	let activeCategory = $state<string>("all");
+	const categoryFilters = [
+		{ id: "all", name: "All", icon: Icons.grid },
+		{
+			id: "internship",
+			name: "Internships",
+			icon: Icons.briefcase,
+			color: "bg-fuchsia-500/40",
+		},
+		{
+			id: "course",
+			name: "Courses",
+			icon: Icons.book,
+			color: "bg-teal-500/40",
+		},
+		{
+			id: "volunteering",
+			name: "Volunteering",
+			icon: Icons.heart,
+			color: "bg-amber-500/40",
+		},
+		{
+			id: "travel",
+			name: "Travel",
+			icon: Icons.plane,
+			color: "bg-rose-500/40",
+		},
+		{
+			id: "research",
+			name: "Research",
+			icon: Icons.search,
+			color: "bg-blue-500/40",
+		},
+	];
+
+	function setCategory(category: string) {
+		activeCategory = category;
+		filterCategory = category;
+	}
+
+	function setLayout(layout: string) {
+		layoutType = layout;
+	}
 
 	$effect(() => {
 		let filtered = [...data.activities];
@@ -224,7 +280,6 @@
 		const steps = 30;
 
 		const progress = Math.min(tick / steps, 1);
-		// Use the cubicOut easing function from svelte/easing
 		return maxDelay - (maxDelay - minDelay) * cubicOut(progress);
 	}
 
@@ -242,23 +297,13 @@
 
 <Seo
 	title="Suggested Activities"
-	description="Manage your summer activities"
+	description="Explore summer activities, internships, courses, and more"
 	keywords="summer activities, internships, courses, travels"
 />
 
 <div class="container mx-auto px-4 py-8">
-	<div class="flex flex-col md:flex-row items-center justify-between mb-4">
-		<h1 class="md:text-4xl text-2xl font-bold flex-1">Summer Activities</h1>
-
+	<div class="flex flex-col md:flex-row items-center justify-between mb-6">
 		<div class="flex items-center gap-4">
-			<CrButton
-				size="icon"
-				class="text-sm"
-				variant="outline"
-				onclick={toggleFilters}
-			>
-				<Icons.filter class="w-5 h-5" />
-			</CrButton>
 			<CrButton
 				class="text-sm"
 				variant="default"
@@ -284,114 +329,190 @@
 		</div>
 	{/if}
 
-	{#if showFilters}
-		<Card className="mb-6 flex flex-col gap-4">
-			<div class="flex items-center justify-between mb-4">
-				<h2
-					class="text-lg font-semibold text-gray-800 dark:text-gray-400 flex items-center"
-				>
-					<Icons.sliders class="w-5 h-5 mr-2 text-blue-500" />
-					Filter Activities
-				</h2>
+	<div
+		class="mb-4 w-full flex justify-between"
+		in:fade={{ duration: 300, delay: 200 }}
+	>
+		<div class="flex overflow-x-auto gap-3 pb-3 hide-scrollbar">
+			{#each categoryFilters as category}
 				<button
-					onclick={clearFilters}
-					class="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200 flex items-center"
+					class="px-4 py-3 rounded-md hover:cursor-pointer whitespace-nowrap transition-all duration-300 flex items-center
+                          {activeCategory === category.id
+						? (category.color ||
+								' bg-stone-900/60 text-slate-50 ') +
+							'  shadow-md'
+						: 'bg-fr border border-gray-200 dark:border-gray-700 hover:border-purple-300'}"
+					onclick={() => setCategory(category.id)}
 				>
-					<Icons.refresh class="w-4 h-4 mr-1" />
-					Reset Filters
+					<svelte:component
+						this={category.icon}
+						class="h-5 w-5 mr-3"
+					/>
+					{category.name}
 				</button>
+			{/each}
+		</div>
+
+		<div class="flex items-start justify-start gap-1 p-1 rounded-lg">
+			<button
+				class="p-2 rounded-md hover:cursor-pointer transition-all {layoutType ===
+				'grid'
+					? ' bg-slate-50 dark:bg-gray-700/60'
+					: ' hover:bg-teal-500/80 dark:hover:bg-gray-700/50'}"
+				title="Grid layout"
+				onclick={() => setLayout("grid")}
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+					/>
+				</svg>
+			</button>
+			<button
+				class="p-2 rounded-lg transition-all {layoutType === 'list'
+					? 'bg-white dark:bg-gray-700 shadow-sm'
+					: 'hover:bg-white/50 dark:hover:bg-gray-700/50'}"
+				title="List layout"
+				onclick={() => setLayout("list")}
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M4 6h16M4 12h16M4 18h16"
+					/>
+				</svg>
+			</button>
+			<button
+				class="p-2 rounded-lg transition-all {layoutType === 'cards'
+					? 'bg-white dark:bg-gray-700 shadow-sm'
+					: 'hover:bg-white/50 dark:hover:bg-gray-700/50'}"
+				title="Cards layout"
+				onclick={() => setLayout("cards")}
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+					/>
+				</svg>
+			</button>
+			<button
+				class="p-2 rounded-lg transition-all {layoutType === 'book'
+					? 'bg-white dark:bg-gray-700 shadow-sm'
+					: 'hover:bg-white/50 dark:hover:bg-gray-700/50'}"
+				title="Book layout"
+				onclick={() => setLayout("book")}
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+					/>
+				</svg>
+			</button>
+		</div>
+	</div>
+
+	<!-- Advanced Filters Card -->
+	<Card className="mb-6 flex flex-col gap-4">
+		<div class="flex items-center justify-between mb-4">
+			<h2
+				class="text-lg font-semibold text-gray-800 dark:text-gray-400 flex items-center"
+			>
+				<Icons.sliders class="w-5 h-5 mr-2 text-blue-500" />
+				Advanced Filters
+			</h2>
+			<button
+				onclick={clearFilters}
+				class="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200 flex items-center"
+			>
+				<Icons.refresh class="w-4 h-4 mr-1" />
+				Reset Filters
+			</button>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+			<div class="relative">
+				<select
+					id="filterMajor"
+					bind:value={filterMajor}
+					class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
+				>
+					<option value="all">All Majors</option>
+					{#each majors as major}
+						<option value={major.id}>{major.title}</option>
+					{/each}
+				</select>
+				<div
+					class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
+				>
+					<Icons.graduationCap class="w-5 h-5" />
+				</div>
+				<div
+					class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
+				>
+					<Icons.chevronsUpDown class="w-4 h-4" />
+				</div>
 			</div>
 
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-				<div class="relative">
-					<select
-						id="filterCategory"
-						bind:value={filterCategory}
-						class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
-					>
-						<option value="all">All Categories</option>
-						<option value="internship">Internship</option>
-						<option value="course">Course</option>
-						<option value="travel">Travel</option>
-						<option value="volunteering">Volunteering</option>
-						<option value="research">Research</option>
-						<option value="workshop">Workshop</option>
-						<option value="hackathon">Hackathon</option>
-						<option value="other">Other</option>
-					</select>
-					<div
-						class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
-					>
-						{#if filterCategory === "internship"}
-							<Icons.briefcase class="w-5 h-5" />
-						{:else if filterCategory === "course"}
-							<Icons.book class="w-5 h-5" />
-						{:else if filterCategory === "travel"}
-							<Icons.plane class="w-5 h-5" />
-						{:else if filterCategory === "volunteering"}
-							<Icons.heart class="w-5 h-5" />
-						{:else if filterCategory === "other"}
-							<Icons.star class="w-5 h-5" />
-						{:else}
-							<Icons.grid class="w-5 h-5" />
-						{/if}
-					</div>
-					<div
-						class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
-					>
-						<Icons.chevronsUpDown class="w-4 h-4" />
-					</div>
+			<div class="relative">
+				<input
+					type="text"
+					id="filterSearch"
+					placeholder="Search activities..."
+					bind:value={filterSearch}
+					class="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
+				/>
+				<div
+					class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
+				>
+					<Icons.search class="w-5 h-5" />
 				</div>
-
-				<div class="relative">
-					<select
-						id="filterMajor"
-						bind:value={filterMajor}
-						class="appearance-none w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
+				{#if filterSearch}
+					<button
+						class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+						onclick={() => (filterSearch = "")}
 					>
-						<option value="all">All Majors</option>
-						{#each majors as major}
-							<option value={major.id}>{major.title}</option>
-						{/each}
-					</select>
-					<div
-						class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
-					>
-						<Icons.graduationCap class="w-5 h-5" />
-					</div>
-					<div
-						class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400"
-					>
-						<Icons.chevronsUpDown class="w-4 h-4" />
-					</div>
-				</div>
-
-				<div class="relative">
-					<input
-						type="text"
-						id="filterSearch"
-						placeholder="Search activities..."
-						bind:value={filterSearch}
-						class="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
-					/>
-					<div
-						class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500"
-					>
-						<Icons.search class="w-5 h-5" />
-					</div>
-					{#if filterSearch}
-						<button
-							class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-							onclick={() => (filterSearch = "")}
-						>
-							<Icons.x class="w-4 h-4" />
-						</button>
-					{/if}
-				</div>
+						<Icons.x class="w-4 h-4" />
+					</button>
+				{/if}
 			</div>
 
 			{#if data?.session?.userId}
-				<div class="mt-4 pl-1">
+				<div class="mt-4 pl-1 md:mt-0 flex items-center">
 					<label class="inline-flex items-center cursor-pointer">
 						<div
 							class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
@@ -410,31 +531,32 @@
 							></div>
 						</div>
 						<span class="text-sm text-gray-700"
-							>Show only my activities</span
+							>My activities only</span
 						>
 					</label>
 				</div>
 			{/if}
+		</div>
 
-			<div class="mt-4 flex items-center text-sm text-gray-600">
-				<Icons.filter class="w-4 h-4 mr-1.5 text-blue-500" />
-				<span class="font-medium"
-					>Showing {" " + activities.length + " "}</span
+		<div class="mt-4 flex items-center text-sm text-gray-600">
+			<Icons.filter class="w-4 h-4 mr-1.5 text-blue-500" />
+			<span class="font-medium"
+				>Showing {" " + activities.length + " "}</span
+			>
+			of {data.activities.length} activities
+			{#if activities.length !== data.activities.length}
+				<span
+					class="ml-1.5 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+					>Filtered</span
 				>
-				of {data.activities.length} activities
-				{#if activities.length !== data.activities.length}
-					<span
-						class="ml-1.5 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
-						>Filtered</span
-					>
-				{/if}
-			</div>
-		</Card>
-	{/if}
+			{/if}
+		</div>
+	</Card>
 
 	{#if isAddingActivity}
 		<div
-			class="/80 backdrop-blur-md backdrop-saturate-150 rounded-lg shadow-lg p-6 mb-8 border border-gray-100/50"
+			class="backdrop-blur-md backdrop-saturate-150 rounded-lg shadow-lg p-6 mb-8 border border-gray-100/50"
+			in:fade={{ duration: 300 }}
 		>
 			<h2 class="text-xl font-semibold mb-4">Add New Summer Activity</h2>
 
@@ -1029,249 +1151,815 @@
 		</div>
 	{/if}
 
-	<!-- Activities List -->
+	<!-- Activities Dashboard -->
 	{#if activities.length === 0}
-		<ComponentCard>
-			<div class="flex justify-center mb-4">
-				<Icons.calendar class="w-16 h-16 text-gray-400" />
-			</div>
-			<h3 class="text-lg font-medium text-gray-900 mb-2">
+		<div
+			class="flex flex-col items-center justify-center py-16 text-center"
+			in:fade={{ duration: 300 }}
+		>
+			<Icons.calendar class="w-16 h-16 text-gray-300 mb-4" />
+			<h3 class="text-xl font-semibold text-gray-700 mb-2">
 				No activities found
 			</h3>
-			<p class="text-gray-500">
-				Click the "Add Activity" button to create your first summer
-				activity.
+			<p class="text-gray-500 max-w-md mb-6">
+				{#if filterCategory !== "all" || filterMajor !== "all" || filterSearch || filterUserActivities}
+					No activities match your current filters. Try adjusting your
+					search criteria.
+				{:else}
+					Click the "Add Activity" button to create your first summer
+					activity.
+				{/if}
 			</p>
-		</ComponentCard>
+			{#if filterCategory !== "all" || filterMajor !== "all" || filterSearch || filterUserActivities}
+				<CrButton variant="outline" onclick={clearFilters}>
+					<Icons.refresh class="w-4 h-4 mr-2" />
+					Clear Filters
+				</CrButton>
+			{/if}
+		</div>
 	{:else}
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-			{#each activities as activity}
-				<a href={`/activities/${activity.id}`} class="no-underline">
-					<ComponentCard title={activity.title}>
-						<div class="px-2">
-							<div class="flex items-center justify-between mb-3">
-								<span
-									class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+		<!-- Grid Layout -->
+		{#if layoutType === "grid"}
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{#each activities as activity, i}
+					<a
+						href={`/activities/${activity.id}`}
+						class="no-underline transition-transform hover:-translate-y-1 duration-300"
+						in:fly={{ y: 20, duration: 300, delay: 100 + i * 50 }}
+					>
+						<div
+							class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow border border-gray-200/50 dark:border-gray-700/50 h-full flex flex-col"
+						>
+							<div
+								class="h-24 relative bg-gradient-to-r
+								{activity.category === 'internship'
+									? 'from-blue-400 to-blue-600'
+									: activity.category === 'course'
+										? 'from-purple-400 to-purple-600'
+										: activity.category === 'travel'
+											? 'from-green-400 to-green-600'
+											: activity.category ===
+												  'volunteering'
+												? 'from-amber-400 to-amber-600'
+												: activity.category ===
+													  'research'
+													? 'from-indigo-400 to-indigo-600'
+													: 'from-gray-400 to-gray-600'}"
+							>
+								<div
+									class="absolute inset-0 opacity-30 pattern-grid"
+								></div>
+
+								<div
+									class="absolute bottom-3 left-4 px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-sm font-medium shadow-sm flex items-center gap-1.5"
 								>
 									{#if activity.category === "internship"}
-										<Icons.briefcase class="w-4 h-4 mr-1" />
+										<Icons.briefcase
+											class="w-4 h-4 text-blue-600"
+										/>
 									{:else if activity.category === "course"}
-										<Icons.book class="w-4 h-4 mr-1" />
+										<Icons.book
+											class="w-4 h-4 text-purple-600"
+										/>
 									{:else if activity.category === "travel"}
-										<Icons.plane class="w-4 h-4 mr-1" />
+										<Icons.plane
+											class="w-4 h-4 text-green-600"
+										/>
 									{:else if activity.category === "volunteering"}
-										<Icons.heart class="w-4 h-4 mr-1" />
+										<Icons.heart
+											class="w-4 h-4 text-amber-600"
+										/>
+									{:else if activity.category === "research"}
+										<Icons.search
+											class="w-4 h-4 text-indigo-600"
+										/>
 									{:else}
-										<Icons.star class="w-4 h-4 mr-1" />
+										<Icons.star
+											class="w-4 h-4 text-gray-600"
+										/>
 									{/if}
-									{activity?.category &&
-										activity.category
-											.charAt(0)
-											.toUpperCase() +
-											activity.category.slice(1)}
-								</span>
+									<span class="capitalize"
+										>{activity.category}</span
+									>
+								</div>
 
-								<a
-									href={`/activities/${activity.id}/edit`}
-									class="text-gray-500 hover:text-gray-700"
-								>
-									<Icons.edit class="w-5 h-5" />
-								</a>
+								{#if activity.recommended}
+									<div
+										class="absolute top-3 right-4 px-2 py-1 bg-yellow-400 rounded-md text-xs font-bold"
+									>
+										{activity.recommended}/5
+									</div>
+								{/if}
 							</div>
 
-							{#if activity.location}
-								<div
-									class="flex items-center text-gray-500 mb-2"
-								>
-									<Icons.mapPin class="w-4 h-4 mr-2" />
-									<span>{activity.location}</span>
-								</div>
-							{/if}
+							<div class="p-5 flex-grow flex flex-col">
+								<h3 class="text-lg font-bold mb-2 line-clamp-1">
+									{activity.title}
+								</h3>
 
-							<div class="flex items-center text-gray-500 mb-2">
-								<Icons.clock class="w-4 h-4 mr-2" />
-								<span>{activity.duration}</span>
+								<div class="space-y-2 mb-3 text-sm">
+									{#if activity.location}
+										<div
+											class="flex items-center text-gray-600"
+										>
+											<Icons.mapPin
+												class="w-4 h-4 mr-2 flex-shrink-0"
+											/>
+											<span class="truncate"
+												>{activity.location}</span
+											>
+										</div>
+									{/if}
+
+									<div
+										class="flex items-center text-gray-600"
+									>
+										<Icons.clock
+											class="w-4 h-4 mr-2 flex-shrink-0"
+										/>
+										<span>{activity.duration}</span>
+									</div>
+
+									{#if activity.major}
+										<div
+											class="flex items-center text-gray-600"
+										>
+											<Icons.graduationCap
+												class="w-4 h-4 mr-2 flex-shrink-0"
+											/>
+											<span class="truncate"
+												>{activity.major.title}</span
+											>
+										</div>
+									{/if}
+								</div>
+
+								<p
+									class="text-gray-600 text-sm line-clamp-2 mb-4 flex-grow"
+								>
+									{activity.description}
+								</p>
+
+								{#if (activity.requirements && activity.requirements.length > 0) || (activity.languageRequirements && activity.languageRequirements.length > 0)}
+									<div class="flex flex-wrap gap-2 mb-3">
+										{#if activity.requirements && activity.requirements.length > 0}
+											<span
+												class="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs flex items-center"
+											>
+												<Icons.check
+													class="w-3 h-3 mr-1"
+												/>
+												{activity.requirements.length} Requirements
+											</span>
+										{/if}
+
+										{#if activity.languageRequirements && activity.languageRequirements.length > 0}
+											<span
+												class="px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs flex items-center"
+											>
+												<Icons.chat
+													class="w-3 h-3 mr-1"
+												/>
+												{activity.languageRequirements
+													.length} Languages
+											</span>
+										{/if}
+									</div>
+								{/if}
+
+								<div
+									class="mt-auto pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between"
+								>
+									{#if activity.link}
+										<a
+											href={activity.link}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm"
+											onclick={(e) => e.stopPropagation()}
+										>
+											<Icons.externalLink
+												class="w-4 h-4 mr-1"
+											/>
+											Website
+										</a>
+									{:else}
+										<span></span>
+									{/if}
+
+									<span
+										class="text-sm text-gray-500 flex items-center"
+									>
+										<Icons.info class="w-4 h-4 mr-1" />
+										View Details
+									</span>
+								</div>
 							</div>
-
-							{#if activity.year}
-								<div
-									class="flex items-center text-gray-500 mb-2"
-								>
-									<Icons.calendar class="w-4 h-4 mr-2" />
-									<span>Year: {activity.year}</span>
-								</div>
-							{/if}
-
-							{#if activity.major}
-								<div
-									class="flex items-center text-gray-500 mb-2"
-								>
-									<Icons.graduationCap class="w-4 h-4 mr-2" />
-									<span>{activity.major.title}</span>
-								</div>
-							{/if}
-
-							{#if activity.cost}
-								<div
-									class="flex items-center text-gray-500 mb-2"
-								>
-									<Icons.dollarSign class="w-4 h-4 mr-2" />
-									<span>${activity.cost}</span>
-								</div>
-							{/if}
-
-							{#if activity.recommended}
-								<div
-									class="flex items-center text-gray-500 mb-2"
-								>
-									<Icons.star class="w-4 h-4 mr-2" />
-									<span>{activity.recommended}/5</span>
-								</div>
-							{/if}
-
-							<p class="text-gray-600 mb-4 line-clamp-3">
-								{activity.description}
-							</p>
-
-							{#if activity.requirements && activity.requirements.length > 0}
-								<div class="mb-3">
-									<h4
-										class="text-sm font-semibold text-gray-700 mb-1"
-									>
-										Requirements:
-									</h4>
-									<ul
-										class="text-sm text-gray-600 pl-5 list-disc"
-									>
-										{#each activity.requirements as req}
-											<li>{req.title}</li>
-										{/each}
-									</ul>
-								</div>
-							{/if}
-
-							{#if activity.languageRequirements && activity.languageRequirements.length > 0}
-								<div class="mb-3">
-									<h4
-										class="text-sm font-semibold text-gray-700 mb-1 flex items-center"
-									>
-										<Icons.chat
-											class="w-3.5 h-3.5 mr-1 text-blue-600"
-										/>
-										Language Requirements:
-									</h4>
-									<ul
-										class="text-sm text-gray-600 pl-5 list-disc"
-									>
-										{#each activity.languageRequirements as req}
-											<li>
-												<span class="font-medium"
-													>{req.name}</span
-												>: {req.level}
-												{#if req.details}
-													<span
-														class="text-xs text-gray-500 block"
-														>{req.details}</span
-													>
-												{/if}
-											</li>
-										{/each}
-									</ul>
-								</div>
-							{/if}
-
-							{#if activity.testRequirements && activity.testRequirements.length > 0}
-								<div class="mb-3">
-									<h4
-										class="text-sm font-semibold text-gray-700 mb-1 flex items-center"
-									>
-										<Icons.fileText
-											class="w-3.5 h-3.5 mr-1 text-green-600"
-										/>
-										Test Requirements:
-									</h4>
-									<ul
-										class="text-sm text-gray-600 pl-5 list-disc"
-									>
-										{#each activity.testRequirements as req}
-											<li>
-												<span class="font-medium"
-													>{req.name}</span
-												>: Min. score {req.score}
-												{#if req.details}
-													<span
-														class="text-xs text-gray-500 block"
-														>{req.details}</span
-													>
-												{/if}
-											</li>
-										{/each}
-									</ul>
-								</div>
-							{/if}
-
-							{#if activity.gradeRequirements && activity.gradeRequirements.length > 0}
-								<div class="mb-3">
-									<h4
-										class="text-sm font-semibold text-gray-700 mb-1 flex items-center"
-									>
-										<Icons.barChart
-											class="w-3.5 h-3.5 mr-1 text-purple-600"
-										/>
-										Grade Requirements:
-									</h4>
-									<ul
-										class="text-sm text-gray-600 pl-5 list-disc"
-									>
-										{#each activity.gradeRequirements as req}
-											<li>
-												<span class="font-medium"
-													>{req.type}</span
-												>: {req.value}
-												{#if req.details}
-													<span
-														class="text-xs text-gray-500 block"
-														>{req.details}</span
-													>
-												{/if}
-											</li>
-										{/each}
-									</ul>
-								</div>
-							{/if}
-
-							{#if activity.goodForWho}
-								<div class="mb-3">
-									<h4
-										class="text-sm font-semibold text-gray-700 mb-1"
-									>
-										Good for:
-									</h4>
-									<p class="text-sm text-gray-600">
-										{activity.goodForWho}
-									</p>
-								</div>
-							{/if}
-
-							{#if activity.link}
-								<div class="mb-3">
-									<a
-										href={activity.link}
-										target="_blank"
-										rel="noopener noreferrer"
-										class="inline-flex items-center text-blue-600 hover:text-blue-800"
-									>
-										<Icons.externalLink
-											class="w-4 h-4 mr-1"
-										/>
-										Visit Website
-									</a>
-								</div>
-							{/if}
 						</div>
-					</ComponentCard>
-				</a>
-			{/each}
-		</div>
+					</a>
+				{/each}
+			</div>
+
+			<!-- List Layout -->
+		{:else if layoutType === "list"}
+			<div class="space-y-4">
+				{#each activities as activity, i}
+					<a
+						href={`/activities/${activity.id}`}
+						class="no-underline block"
+						in:fly={{ y: 20, duration: 300, delay: 100 + i * 30 }}
+					>
+						<div
+							class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all hover:translate-x-1 duration-300 border border-gray-200/50 dark:border-gray-700/50"
+						>
+							<div class="flex flex-col md:flex-row">
+								<div class="md:w-3/12 lg:w-2/12">
+									<div
+										class="h-full relative bg-gradient-to-r
+										{activity.category === 'internship'
+											? 'from-blue-400 to-blue-600'
+											: activity.category === 'course'
+												? 'from-purple-400 to-purple-600'
+												: activity.category === 'travel'
+													? 'from-green-400 to-green-600'
+													: activity.category ===
+														  'volunteering'
+														? 'from-amber-400 to-amber-600'
+														: activity.category ===
+															  'research'
+															? 'from-indigo-400 to-indigo-600'
+															: 'from-gray-400 to-gray-600'}"
+									>
+										<div
+											class="absolute inset-0 opacity-30 pattern-grid"
+										></div>
+										<div
+											class="flex items-center justify-center h-full p-4"
+										>
+											{#if activity.category === "internship"}
+												<Icons.briefcase
+													class="w-12 h-12 text-white"
+												/>
+											{:else if activity.category === "course"}
+												<Icons.book
+													class="w-12 h-12 text-white"
+												/>
+											{:else if activity.category === "travel"}
+												<Icons.plane
+													class="w-12 h-12 text-white"
+												/>
+											{:else if activity.category === "volunteering"}
+												<Icons.heart
+													class="w-12 h-12 text-white"
+												/>
+											{:else if activity.category === "research"}
+												<Icons.search
+													class="w-12 h-12 text-white"
+												/>
+											{:else}
+												<Icons.star
+													class="w-12 h-12 text-white"
+												/>
+											{/if}
+										</div>
+									</div>
+								</div>
+
+								<div class="p-5 md:w-9/12 lg:w-10/12">
+									<div
+										class="flex items-center justify-between mb-2"
+									>
+										<div class="flex items-center">
+											<h3 class="text-lg font-bold mr-3">
+												{activity.title}
+											</h3>
+											<span
+												class="capitalize px-2 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-700"
+											>
+												{activity.category}
+											</span>
+										</div>
+
+										{#if activity.recommended}
+											<div class="flex items-center">
+												<Icons.star
+													class="w-4 h-4 text-yellow-500 mr-1"
+												/>
+												<span class="text-sm font-bold"
+													>{activity.recommended}/5</span
+												>
+											</div>
+										{/if}
+									</div>
+
+									<p
+										class="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-3"
+									>
+										{activity.description}
+									</p>
+
+									<div
+										class="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400"
+									>
+										{#if activity.location}
+											<div class="flex items-center">
+												<Icons.mapPin
+													class="w-4 h-4 mr-1 flex-shrink-0 text-gray-500"
+												/>
+												<span>{activity.location}</span>
+											</div>
+										{/if}
+
+										<div class="flex items-center">
+											<Icons.clock
+												class="w-4 h-4 mr-1 flex-shrink-0 text-gray-500"
+											/>
+											<span>{activity.duration}</span>
+										</div>
+
+										{#if activity.major}
+											<div class="flex items-center">
+												<Icons.graduationCap
+													class="w-4 h-4 mr-1 flex-shrink-0 text-gray-500"
+												/>
+												<span
+													>{activity.major
+														.title}</span
+												>
+											</div>
+										{/if}
+
+										{#if activity.requirements && activity.requirements.length > 0}
+											<div class="flex items-center">
+												<Icons.check
+													class="w-4 h-4 mr-1 flex-shrink-0 text-blue-500"
+												/>
+												<span class="text-blue-600"
+													>{activity.requirements
+														.length} Requirements</span
+												>
+											</div>
+										{/if}
+
+										{#if activity.languageRequirements && activity.languageRequirements.length > 0}
+											<div class="flex items-center">
+												<Icons.chat
+													class="w-4 h-4 mr-1 flex-shrink-0 text-green-500"
+												/>
+												<span class="text-green-600"
+													>{activity
+														.languageRequirements
+														.length} Languages</span
+												>
+											</div>
+										{/if}
+
+										{#if activity.link}
+											<a
+												href={activity.link}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="flex items-center text-blue-600 hover:text-blue-800 ml-auto"
+												onclick={(e) =>
+													e.stopPropagation()}
+											>
+												<Icons.externalLink
+													class="w-4 h-4 mr-1"
+												/>
+												<span>Website</span>
+											</a>
+										{/if}
+									</div>
+								</div>
+							</div>
+						</div>
+					</a>
+				{/each}
+			</div>
+
+			<!-- Cards Layout -->
+		{:else if layoutType === "cards"}
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				{#each activities as activity, i}
+					<a
+						href={`/activities/${activity.id}`}
+						class="no-underline"
+						in:fly={{ y: 20, duration: 300, delay: 100 + i * 50 }}
+					>
+						<div
+							class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] duration-300 border border-gray-200/50 dark:border-gray-700/50 h-full"
+						>
+							<div class="p-6">
+								<div
+									class="flex items-start justify-between mb-4"
+								>
+									<div class="flex items-center">
+										<div
+											class="p-2 rounded-lg mr-4
+											{activity.category === 'internship'
+												? 'bg-blue-100 text-blue-600'
+												: activity.category === 'course'
+													? 'bg-purple-100 text-purple-600'
+													: activity.category ===
+														  'travel'
+														? 'bg-green-100 text-green-600'
+														: activity.category ===
+															  'volunteering'
+															? 'bg-amber-100 text-amber-600'
+															: activity.category ===
+																  'research'
+																? 'bg-indigo-100 text-indigo-600'
+																: 'bg-gray-100 text-gray-600'}"
+										>
+											{#if activity.category === "internship"}
+												<Icons.briefcase
+													class="w-6 h-6"
+												/>
+											{:else if activity.category === "course"}
+												<Icons.book class="w-6 h-6" />
+											{:else if activity.category === "travel"}
+												<Icons.plane class="w-6 h-6" />
+											{:else if activity.category === "volunteering"}
+												<Icons.heart class="w-6 h-6" />
+											{:else if activity.category === "research"}
+												<Icons.search class="w-6 h-6" />
+											{:else}
+												<Icons.star class="w-6 h-6" />
+											{/if}
+										</div>
+										<div>
+											<h3 class="text-xl font-bold">
+												{activity.title}
+											</h3>
+											<p
+												class="text-sm text-gray-500 capitalize"
+											>
+												{activity.category}
+											</p>
+										</div>
+									</div>
+
+									{#if activity.recommended}
+										<div
+											class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-bold flex items-center"
+										>
+											<Icons.star
+												class="w-4 h-4 mr-1 text-yellow-500"
+											/>
+											{activity.recommended}/5
+										</div>
+									{/if}
+								</div>
+
+								<p
+									class="text-gray-600 dark:text-gray-300 mb-5 line-clamp-3"
+								>
+									{activity.description}
+								</p>
+
+								<div
+									class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg space-y-3"
+								>
+									<div class="flex flex-wrap gap-4 text-sm">
+										{#if activity.location}
+											<div class="flex items-center">
+												<Icons.mapPin
+													class="w-4 h-4 mr-1.5 flex-shrink-0 text-gray-500"
+												/>
+												<span
+													class="text-gray-700 dark:text-gray-300"
+													>{activity.location}</span
+												>
+											</div>
+										{/if}
+
+										<div class="flex items-center">
+											<Icons.clock
+												class="w-4 h-4 mr-1.5 flex-shrink-0 text-gray-500"
+											/>
+											<span
+												class="text-gray-700 dark:text-gray-300"
+												>{activity.duration}</span
+											>
+										</div>
+									</div>
+
+									{#if activity.major}
+										<div class="flex items-center text-sm">
+											<Icons.graduationCap
+												class="w-4 h-4 mr-1.5 flex-shrink-0 text-gray-500"
+											/>
+											<span
+												class="text-gray-700 dark:text-gray-300"
+												>{activity.major.title}</span
+											>
+										</div>
+									{/if}
+
+									{#if (activity.requirements && activity.requirements.length > 0) || (activity.languageRequirements && activity.languageRequirements.length > 0)}
+										<div class="flex flex-wrap gap-2">
+											{#if activity.requirements && activity.requirements.length > 0}
+												<span
+													class="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-md text-xs flex items-center"
+												>
+													<Icons.check
+														class="w-3 h-3 mr-1"
+													/>
+													{activity.requirements
+														.length} Requirements
+												</span>
+											{/if}
+
+											{#if activity.languageRequirements && activity.languageRequirements.length > 0}
+												<span
+													class="px-2.5 py-1 bg-green-100 text-green-800 rounded-md text-xs flex items-center"
+												>
+													<Icons.chat
+														class="w-3 h-3 mr-1"
+													/>
+													{activity
+														.languageRequirements
+														.length} Languages
+												</span>
+											{/if}
+										</div>
+									{/if}
+								</div>
+
+								<div
+									class="mt-5 flex justify-between items-center"
+								>
+									<span
+										class="text-sm text-gray-500 flex items-center"
+									>
+										<Icons.info class="w-4 h-4 mr-1" />
+										View Details
+									</span>
+
+									{#if activity.link}
+										<a
+											href={activity.link}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm px-3 py-1 border border-blue-600 rounded-lg hover:bg-blue-50"
+											onclick={(e) => e.stopPropagation()}
+										>
+											<Icons.externalLink
+												class="w-4 h-4 mr-1.5"
+											/>
+											Website
+										</a>
+									{/if}
+								</div>
+							</div>
+						</div>
+					</a>
+				{/each}
+			</div>
+
+			<!-- Book Layout -->
+		{:else if layoutType === "book"}
+			<div class="space-y-10">
+				{#each activities as activity, i}
+					<a
+						href={`/activities/${activity.id}`}
+						class="no-underline block"
+						in:fly={{ y: 20, duration: 300, delay: 100 + i * 50 }}
+					>
+						<div
+							class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow border border-gray-200/50 dark:border-gray-700/50"
+						>
+							<div class="p-8">
+								<div class="flex items-center mb-5">
+									<div
+										class="mr-4 p-2 rounded-full
+										{activity.category === 'internship'
+											? 'bg-blue-100 text-blue-600'
+											: activity.category === 'course'
+												? 'bg-purple-100 text-purple-600'
+												: activity.category === 'travel'
+													? 'bg-green-100 text-green-600'
+													: activity.category ===
+														  'volunteering'
+														? 'bg-amber-100 text-amber-600'
+														: activity.category ===
+															  'research'
+															? 'bg-indigo-100 text-indigo-600'
+															: 'bg-gray-100 text-gray-600'}"
+									>
+										{#if activity.category === "internship"}
+											<Icons.briefcase class="w-8 h-8" />
+										{:else if activity.category === "course"}
+											<Icons.book class="w-8 h-8" />
+										{:else if activity.category === "travel"}
+											<Icons.plane class="w-8 h-8" />
+										{:else if activity.category === "volunteering"}
+											<Icons.heart class="w-8 h-8" />
+										{:else if activity.category === "research"}
+											<Icons.search class="w-8 h-8" />
+										{:else}
+											<Icons.star class="w-8 h-8" />
+										{/if}
+									</div>
+									<div>
+										<h3 class="text-2xl font-bold">
+											{activity.title}
+										</h3>
+										<p class="text-gray-500 capitalize">
+											{activity.category}
+										</p>
+									</div>
+
+									{#if activity.recommended}
+										<div
+											class="ml-auto bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-bold flex items-center"
+										>
+											<Icons.star
+												class="w-5 h-5 mr-1.5 text-yellow-500"
+											/>
+											{activity.recommended}/5
+										</div>
+									{/if}
+								</div>
+
+								<p
+									class="text-gray-600 dark:text-gray-300 text-lg mb-6 leading-relaxed"
+								>
+									{activity.description}
+								</p>
+
+								<div
+									class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"
+								>
+									<div
+										class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg"
+									>
+										<h4
+											class="text-sm uppercase tracking-wider text-gray-500 mb-2 font-bold"
+										>
+											Location
+										</h4>
+										<div
+											class="flex items-center text-gray-700 dark:text-gray-300"
+										>
+											<Icons.mapPin
+												class="w-5 h-5 mr-2 flex-shrink-0 text-gray-500"
+											/>
+											<span class="text-lg"
+												>{activity.location ||
+													"Not specified"}</span
+											>
+										</div>
+									</div>
+
+									<div
+										class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg"
+									>
+										<h4
+											class="text-sm uppercase tracking-wider text-gray-500 mb-2 font-bold"
+										>
+											Duration
+										</h4>
+										<div
+											class="flex items-center text-gray-700 dark:text-gray-300"
+										>
+											<Icons.clock
+												class="w-5 h-5 mr-2 flex-shrink-0 text-gray-500"
+											/>
+											<span class="text-lg"
+												>{activity.duration}</span
+											>
+										</div>
+									</div>
+
+									<div
+										class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg"
+									>
+										<h4
+											class="text-sm uppercase tracking-wider text-gray-500 mb-2 font-bold"
+										>
+											Major
+										</h4>
+										<div
+											class="flex items-center text-gray-700 dark:text-gray-300"
+										>
+											<Icons.graduationCap
+												class="w-5 h-5 mr-2 flex-shrink-0 text-gray-500"
+											/>
+											<span class="text-lg"
+												>{activity.major?.title ||
+													"Any major"}</span
+											>
+										</div>
+									</div>
+								</div>
+
+								<div class="flex flex-wrap gap-3 mb-6">
+									{#if activity.requirements && activity.requirements.length > 0}
+										<span
+											class="px-4 py-2 bg-blue-100 text-blue-800 rounded-md text-sm flex items-center"
+										>
+											<Icons.check
+												class="w-4 h-4 mr-1.5"
+											/>
+											{activity.requirements.length} Requirements
+										</span>
+									{/if}
+
+									{#if activity.languageRequirements && activity.languageRequirements.length > 0}
+										<span
+											class="px-4 py-2 bg-green-100 text-green-800 rounded-md text-sm flex items-center"
+										>
+											<Icons.chat
+												class="w-4 h-4 mr-1.5"
+											/>
+											{activity.languageRequirements
+												.length} Language Requirements
+										</span>
+									{/if}
+
+									{#if activity.testRequirements && activity.testRequirements.length > 0}
+										<span
+											class="px-4 py-2 bg-purple-100 text-purple-800 rounded-md text-sm flex items-center"
+										>
+											<Icons.fileText
+												class="w-4 h-4 mr-1.5"
+											/>
+											{activity.testRequirements.length} Test
+											Requirements
+										</span>
+									{/if}
+								</div>
+
+								<div
+									class="flex justify-between items-center mt-6 pt-6 border-t border-gray-200 dark:border-gray-700"
+								>
+									<div
+										class="flex items-center text-gray-600 dark:text-gray-400"
+									>
+										<Icons.calendar class="w-5 h-5 mr-2" />
+										<span
+											>Year: {activity.year ||
+												"Not specified"}</span
+										>
+									</div>
+
+									<div class="flex items-center">
+										<span
+											class="text-gray-600 dark:text-gray-400 flex items-center mr-4"
+										>
+											<Icons.info class="w-5 h-5 mr-2" />
+											View Details
+										</span>
+
+										{#if activity.link}
+											<a
+												href={activity.link}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+												onclick={(e) =>
+													e.stopPropagation()}
+											>
+												<Icons.externalLink
+													class="w-4 h-4 mr-2"
+												/>
+												Visit Website
+											</a>
+										{/if}
+									</div>
+								</div>
+							</div>
+						</div>
+					</a>
+				{/each}
+			</div>
+		{/if}
 	{/if}
 </div>
+
+<style>
+	/* Hide scrollbar but maintain functionality */
+	.hide-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+	.hide-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	/* Pattern grid for cards */
+	.pattern-grid {
+		background-image: linear-gradient(
+				to right,
+				rgba(255, 255, 255, 0.1) 1px,
+				transparent 1px
+			),
+			linear-gradient(
+				to bottom,
+				rgba(255, 255, 255, 0.1) 1px,
+				transparent 1px
+			);
+		background-size: 20px 20px;
+	}
+</style>

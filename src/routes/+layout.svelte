@@ -29,26 +29,18 @@
 		},
 	);
 
-	// Check for auth change header after each navigation
 	afterNavigate(({ from, to }) => {
-		// Only check on client-side navigation (not the initial load)
 		if (from && document.querySelector('meta[name="x-auth-changed"]')) {
-			// Remove the meta tag to prevent duplicate invalidations
 			document.querySelector('meta[name="x-auth-changed"]')?.remove();
-			// Invalidate all data to refresh the navbar and locals
 			invalidateAll();
 		}
 	});
 
-	// Add observer to check response headers
 	onMount(() => {
-		// Create a fetch interceptor to check for auth change headers
 		const originalFetch = window.fetch;
 		window.fetch = async function (input, init) {
 			const response = await originalFetch(input, init);
-			// Check if this response indicates an auth change
 			if (response.headers.get("X-Auth-Changed") === "true") {
-				// Add a meta tag to indicate auth changed - we'll check for this after navigation
 				if (!document.querySelector('meta[name="x-auth-changed"]')) {
 					const meta = document.createElement("meta");
 					meta.name = "x-auth-changed";
@@ -66,7 +58,7 @@
 <ModeWatcher defaultMode="light" />
 <Toaster position="top-right" richColors />
 
-<div class="">
+<div class="relative md:pt-20">
 	<Navbar {user} />
 	{@render children()}
 </div>
